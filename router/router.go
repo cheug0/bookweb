@@ -103,6 +103,7 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 	router.GET(adminPath+"/security", adaptHandlerFunc(admin.AuthMiddleware(admin.Security))) // 新增安全设置
 	router.POST(adminPath+"/security/password", adaptHandlerFunc(admin.AuthMiddleware(admin.SecurityPassword)))
 	router.POST(adminPath+"/security/path", adaptHandlerFunc(admin.AuthMiddleware(admin.SecurityPath)))
+	router.POST(adminPath+"/redis/test", adaptHandlerFunc(admin.AuthMiddleware(admin.TestRedisConnection)))
 
 	// 模块设置更新接口
 	router.POST(adminPath+"/modules/routes", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleRoutesUpdate)))

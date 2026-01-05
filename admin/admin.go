@@ -3,6 +3,7 @@ package admin
 import (
 	"bookweb/config"
 	"bookweb/dao"
+	"bookweb/utils"
 	"encoding/json"
 	"html/template"
 	"net/http"
@@ -151,6 +152,13 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			cfg.Db.User = r.FormValue("db_user")
 			cfg.Db.Password = r.FormValue("db_password")
 			cfg.Db.DbName = r.FormValue("db_dbname")
+		} else if updateType == "redis" {
+			// 保存 Redis 配置
+			cfg.Redis.Enabled = r.FormValue("redis_enabled") == "on"
+			cfg.Redis.Host = r.FormValue("redis_host")
+			cfg.Redis.Port, _ = strconv.Atoi(r.FormValue("redis_port"))
+			cfg.Redis.Password = r.FormValue("redis_password")
+			cfg.Redis.DB, _ = strconv.Atoi(r.FormValue("redis_db"))
 		}
 
 		err := config.SaveAppConfig("config/config.conf")
@@ -635,7 +643,7 @@ func ModuleSeoUpdate(w http.ResponseWriter, r *http.Request) {
 	cfg := config.GetGlobalConfig()
 	cfg.SeoRules = seoRules
 
-	err := config.SaveAppConfig("config/config.conf")
+	err := config.SaveSeoConfig("config/seo.conf")
 	if err != nil {
 		jsonResponse(w, map[string]interface{}{"success": false, "message": err.Error()})
 		return
@@ -737,4 +745,38 @@ func SecurityPath(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse(w, map[string]interface{}{"success": true, "message": "入口已修改，正在跳转...", "new_path": newPath})
+}
+
+// TestRedisConnection 测试 Redis 连接
+func TestRedisConnection(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	host := r.FormValue("host")
+	portStr := r.FormValue("port")
+	password := r.FormValue("password")
+	dbStr := r.FormValue("db")
+
+	port, _ := strconv.Atoi(portStr)
+	db, _ := strconv.Atoi(dbStr)
+
+	// 创建测试配置
+	testCfg := &config.RedisConfig{
+		Enabled:  true,
+		Host:     host,
+		Port:     port,
+		Password: password,
+		DB:       db,
+	}
+
+	// 尝试连接
+	err := utils.InitRedis(testCfg)
+	if err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "连接失败: " + err.Error()})
+		return
+	}
+
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "连接成功！"})
 }

@@ -56,8 +56,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	// 2. 热门小说 (取 allvisit 前 12)
 	hotArticles, _ := dao.GetVisitArticles(12)
 
-	// 3. 分类展示 (前 6 个分类，每个取 13 本)
-	allSorts, _ := dao.GetAllSorts()
+	// 3. 分类展示 (前 6 个分类，每个取 13 本，带缓存)
+	allSorts, _ := dao.GetAllSortsCached()
 	sortMap := make(map[int]string)
 	var blocks []categoryBlock
 	for i, s := range allSorts {

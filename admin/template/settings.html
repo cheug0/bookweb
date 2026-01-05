@@ -2,6 +2,7 @@
 <div class="tabs">
     <div class="tab-btn active" onclick="switchTab(this, 'basic')">基本参数设置</div>
     <div class="tab-btn" onclick="switchTab(this, 'db')">数据库设置</div>
+    <div class="tab-btn" onclick="switchTab(this, 'redis')">Redis 缓存</div>
 </div>
 
 <div id="basic" class="tab-content active">
@@ -55,8 +56,6 @@
                         </select>
                     </div>
 
-                    <!-- 本地存储设置 -->
-                    <!-- 本地存储设置 -->
                     <!-- 本地存储设置 -->
                     <div id="local-settings"
                         style='display: {{if eq .Config.Storage.Type "local"}}block{{else}}none{{end}};'>
@@ -119,7 +118,7 @@
         </div>
 
         <div class="alert alert-warning" style="margin-bottom: 20px;">
-            <i class="fa fa-exclamation-triangle"></i> 警告：修改数据库配置可能导致系统无法连接数据库。修改后请点击“测试连接”确保配置正确，保存后需重启服务生效。
+            <i class="fa fa-exclamation-triangle"></i> 警告：修改数据库配置可能导致系统无法连接数据库。修改后请点击“测试连接”确保配置正确。
         </div>
 
         <form id="dbForm">
@@ -163,6 +162,57 @@
                     style="margin-right: 15px;">测试连接</button>
                 <button type="submit" class="btn btn-primary"
                     style="padding: 10px 40px; font-size: 16px;">保存数据库配置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="redis" class="tab-content">
+    <div class="card">
+        <div class="card-title" style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 18px; color: #333;">Redis 缓存配置</h3>
+        </div>
+
+        <form id="redisForm">
+            <input type="hidden" name="update_type" value="redis">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="redis_enabled" {{if .Config.Redis.Enabled}}checked{{end}}
+                            style="margin-right: 10px;">
+                        <span style="font-weight: 500;">启用 Redis 缓存</span>
+                    </label>
+                    <small style="color: #999; display: block; margin-top: 5px;">启用后可以显著提升页面加载速度</small>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Redis 主机</label>
+                    <input type="text" name="redis_host" value="{{.Config.Redis.Host}}" class="form-control"
+                        style="width: 100%;" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">端口</label>
+                    <input type="number" name="redis_port"
+                        value="{{if .Config.Redis.Port}}{{.Config.Redis.Port}}{{else}}6379{{end}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">密码</label>
+                    <input type="password" name="redis_password" value="{{.Config.Redis.Password}}" class="form-control"
+                        style="width: 100%;" placeholder="留空为无密码">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">数据库索引</label>
+                    <input type="number" name="redis_db" value="{{.Config.Redis.DB}}" class="form-control"
+                        style="width: 100%;" placeholder="0">
+                </div>
+            </div>
+
+            <div class="form-actions"
+                style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn btn-info" onclick="testRedisConnection()"
+                    style="margin-right: 15px;">测试连接</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 40px; font-size: 16px;">保存 Redis
+                    配置</button>
             </div>
         </form>
     </div>
@@ -243,6 +293,33 @@
         } else {
             document.getElementById('local-settings').style.display = 'none';
             document.getElementById('oss-settings').style.display = 'block';
+        }
+    }
+
+    const redisForm = document.getElementById('redisForm');
+    if (redisForm) {
+        redisForm.addEventListener('submit', handleSettingsSubmit);
+    }
+
+    async function testRedisConnection() {
+        const form = document.getElementById('redisForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        params.append('host', formData.get('redis_host'));
+        params.append('port', formData.get('redis_port'));
+        params.append('password', formData.get('redis_password'));
+        params.append('db', formData.get('redis_db'));
+
+        try {
+            const res = await fetch('{{.AdminPath}}/redis/test', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
         }
     }
 </script>

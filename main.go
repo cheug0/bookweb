@@ -20,9 +20,23 @@ func main() {
 	// 初始化数据库
 	utils.InitDB(&appCfg.Db)
 
+	// 初始化 Redis 缓存 (如果启用)
+	if appCfg.Redis.Enabled {
+		if err := utils.InitRedis(&appCfg.Redis); err != nil {
+			log.Printf("Warning: Failed to init Redis cache: %v", err)
+		} else {
+			log.Println("Redis cache enabled and connected.")
+		}
+	}
+
 	// 加载友情链接配置
 	if err := config.LoadLinkConfig("config/link.conf"); err != nil {
 		log.Printf("Warning: Failed to load link config: %v", err)
+	}
+
+	// 加载 SEO 规则配置
+	if err := config.LoadSeoConfig("config/seo.conf"); err != nil {
+		log.Printf("Warning: Failed to load SEO config: %v", err)
 	}
 
 	// 加载路由配置

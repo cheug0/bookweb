@@ -58,8 +58,8 @@ func SortList(w http.ResponseWriter, r *http.Request) {
 	pageSize := 20
 	offset := (currentPage - 1) * pageSize
 
-	// 获取所有分类 (侧边栏内容)
-	allSorts, err := dao.GetAllSorts()
+	// 获取所有分类 (侧边栏内容，带缓存)
+	allSorts, err := dao.GetAllSortsCached()
 	if err != nil {
 		NotFound(w, r)
 		return

@@ -48,11 +48,20 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. 获取小说基本信息
-	article, err := dao.GetArticleByID(articleID)
+	// 1. 获取小说基本信息（带缓存）
+	article, err := dao.GetArticleByIDCached(articleID)
 	if err != nil {
 		NotFound(w, r)
 		return
+	}
+
+	// 增加点击量（排除爬虫）
+	userAgent := r.UserAgent()
+	if !utils.IsBot(userAgent) {
+		// 异步更新点击量，避免阻塞页面加载
+		go func() {
+			dao.IncArticleVisit(articleID)
+		}()
 	}
 
 	// 2. 获取分类名称
@@ -62,8 +71,8 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		sortName = sort.Caption
 	}
 
-	// 3. 获取章节目录
-	chapters, err := dao.GetChaptersByArticleID(articleID)
+	// 3. 获取章节目录（带缓存）
+	chapters, err := dao.GetChaptersByArticleIDCached(articleID)
 	if err != nil {
 		chapters = []*model.Chapter{}
 	}
@@ -177,15 +186,15 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. 获取小说基本信息
-	article, err := dao.GetArticleByID(articleID)
+	// 1. 获取小说基本信息（带缓存）
+	article, err := dao.GetArticleByIDCached(articleID)
 	if err != nil {
 		NotFound(w, r)
 		return
 	}
 
-	// 2. 获取章节目录
-	chapters, err := dao.GetChaptersByArticleID(articleID)
+	// 2. 获取章节目录（带缓存）
+	chapters, err := dao.GetChaptersByArticleIDCached(articleID)
 	if err != nil {
 		chapters = []*model.Chapter{}
 	}

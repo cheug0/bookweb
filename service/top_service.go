@@ -23,18 +23,18 @@ type TopData struct {
 func GetTopData() (*TopData, error) {
 	limit := 10 // 每类取前10名
 
-	allVisit, _ := dao.GetRankArticles("allvisit", limit)
-	monthVisit, _ := dao.GetRankArticles("monthvisit", limit)
-	weekVisit, _ := dao.GetRankArticles("weekvisit", limit)
-	dayVisit, _ := dao.GetRankArticles("dayvisit", limit)
+	allVisit, _ := dao.GetRankArticlesCached("allvisit", limit)
+	monthVisit, _ := dao.GetRankArticlesCached("monthvisit", limit)
+	weekVisit, _ := dao.GetRankArticlesCached("weekvisit", limit)
+	dayVisit, _ := dao.GetRankArticlesCached("dayvisit", limit)
 
-	allVote, _ := dao.GetRankArticles("allvote", limit)
-	monthVote, _ := dao.GetRankArticles("monthvote", limit)
-	weekVote, _ := dao.GetRankArticles("weekvote", limit)
-	dayVote, _ := dao.GetRankArticles("dayvote", limit)
+	allVote, _ := dao.GetRankArticlesCached("allvote", limit)
+	monthVote, _ := dao.GetRankArticlesCached("monthvote", limit)
+	weekVote, _ := dao.GetRankArticlesCached("weekvote", limit)
+	dayVote, _ := dao.GetRankArticlesCached("dayvote", limit)
 
-	newUpdate, _ := dao.GetRankArticles("lastupdate", limit)
-	postDate, _ := dao.GetRankArticles("postdate", limit)
+	newUpdate, _ := dao.GetRankArticlesCached("lastupdate", limit)
+	postDate, _ := dao.GetRankArticlesCached("postdate", limit)
 
 	return &TopData{
 		AllVisit:   allVisit,

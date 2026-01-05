@@ -214,3 +214,50 @@ func GetSearchCount(keyword string) (int, error) {
 	err := utils.Db.QueryRow(sqlStr, "%"+keyword+"%", "%"+keyword+"%").Scan(&count)
 	return count, err
 }
+
+// IncArticleVisit 增加文章点击量
+func IncArticleVisit(id int) error {
+	// 1. 获取当前点击量信息
+	article, err := GetArticleByID(id)
+	if err != nil {
+		return err
+	}
+
+	now := utils.NowTime()
+	lastVisit := article.LastVisit
+
+	// 2. 判断是否需要重置
+	resetDay := !utils.IsSameDay(lastVisit, now)
+	resetWeek := !utils.IsSameWeek(lastVisit, now)
+	resetMonth := !utils.IsSameMonth(lastVisit, now)
+
+	// 3. 更新点击量
+	// 注意：这里需要处理并发更新问题，但在高并发场景下，通常会使用 Redis 计数然后定期回写 DB
+	// 这里采用简单的 SQL 更新
+	sqlStr := "update jieqi_article_article set allvisit=allvisit+1, lastvisit=?"
+	args := []interface{}{now}
+
+	if resetDay {
+		sqlStr += ", dayvisit=1"
+	} else {
+		sqlStr += ", dayvisit=dayvisit+1"
+	}
+
+	if resetWeek {
+		sqlStr += ", weekvisit=1"
+	} else {
+		sqlStr += ", weekvisit=weekvisit+1"
+	}
+
+	if resetMonth {
+		sqlStr += ", monthvisit=1"
+	} else {
+		sqlStr += ", monthvisit=monthvisit+1"
+	}
+
+	sqlStr += " where articleid=?"
+	args = append(args, id)
+
+	_, err = utils.Db.Exec(sqlStr, args...)
+	return err
+}

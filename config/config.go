@@ -47,9 +47,19 @@ type AppConfig struct {
 	Server    ServerConfig       `json:"server"`
 	Site      SiteConfig         `json:"site"`
 	Storage   StorageConfig      `json:"storage"`
-	SeoRules  map[string]SeoRule `json:"seo_rules"`
+	SeoRules  map[string]SeoRule `json:"-"`
 	Links     []LinkConfig       `json:"-"`
 	Analytics string             `json:"analytics"`
+	Redis     RedisConfig        `json:"redis"`
+}
+
+// RedisConfig Redis缓存配置
+type RedisConfig struct {
+	Enabled  bool   `json:"enabled"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Password string `json:"password"`
+	DB       int    `json:"db"`
 }
 
 // StorageConfig 存储配置
@@ -165,6 +175,44 @@ func LoadLinkConfig(configPath string) error {
 	}
 	configLock.Unlock()
 	return nil
+}
+
+// LoadSeoConfig 加载 SEO 规则配置
+func LoadSeoConfig(configPath string) error {
+	file, err := os.Open(configPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var seoRules map[string]SeoRule
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&seoRules); err != nil {
+		return err
+	}
+
+	configLock.Lock()
+	if GlobalConfig != nil {
+		GlobalConfig.SeoRules = seoRules
+	}
+	configLock.Unlock()
+	return nil
+}
+
+// SaveSeoConfig 保存 SEO 规则配置到文件
+func SaveSeoConfig(configPath string) error {
+	configLock.RLock()
+	defer configLock.RUnlock()
+
+	if GlobalConfig == nil {
+		return nil
+	}
+
+	data, err := json.MarshalIndent(GlobalConfig.SeoRules, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configPath, data, 0644)
 }
 
 // GetRoute 获取路由路径
