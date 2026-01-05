@@ -1,0 +1,97 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-title">修改密码</div>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label>原密码</label>
+                    <input type="password" name="old_password" class="form-input" required placeholder="请输入当前使用的密码">
+                </div>
+                <div class="form-group">
+                    <label>新密码</label>
+                    <input type="password" name="new_password" class="form-input" required placeholder="请输入新密码">
+                </div>
+                <div class="form-group">
+                    <label>确认新密码</label>
+                    <input type="password" name="confirm_password" class="form-input" required placeholder="请再次输入新密码">
+                </div>
+                <button type="submit" class="btn btn-primary">修改密码</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-title">后台入口设置</div>
+            <form id="pathForm">
+                <div class="form-group">
+                    <label>自定义后台路径</label>
+                    <div style="display: flex; align-items: center;">
+                        <span style="margin-right: 10px; color: #666;">{{.Domain}}</span>
+                        <input type="text" name="admin_path" class="form-input" value="{{.AdminPath}}" required
+                            pattern="^/[a-zA-Z0-9_-]+$" placeholder="/admin">
+                    </div>
+                    <small style="color: #999; display: block; margin-top: 5px;">必须以 / 开头，只能包含字母、数字、下划线和连字符。</small>
+                </div>
+                <button type="submit" class="btn btn-danger">保存并修改入口</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('passwordForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const res = await fetch('{{.AdminPath}}/security/password', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                this.reset();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    });
+
+    document.getElementById('pathForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!confirm('确定要修改后台入口吗？')) return;
+
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const res = await fetch('{{.AdminPath}}/security/path', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                alert('设置已保存。即将跳转到新地址登录。');
+                setTimeout(() => {
+                    location.href = data.new_path + '/';
+                }, 1000);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    });
+</script>
+{{end}}

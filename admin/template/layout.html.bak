@@ -1,0 +1,54 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - 后台管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>后台管理系统</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" {{if eq .Active "dashboard" }}class="active" {{end}}><i>📊</i> 仪表板</a>
+            <a href="/admin/settings" {{if eq .Active "settings" }}class="active" {{end}}><i>⚙️</i> 系统设置</a>
+            <a href="/admin/modules" {{if eq .Active "modules" }}class="active" {{end}}><i>📦</i> 模块设置</a>
+            <a href="/admin/articles" {{if eq .Active "articles" }}class="active" {{end}}><i>📚</i> 小说管理</a>
+            <a href="/admin/users" {{if eq .Active "users" }}class="active" {{end}}><i>👤</i> 用户管理</a>
+            <a href="/admin/links" {{if eq .Active "links" }}class="active" {{end}}><i>🔗</i> 友情链接</a>
+            <a href="/admin/analytics" {{if eq .Active "analytics" }}class="active" {{end}}><i>📈</i> 统计代码</a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="header">
+            <div class="header-toggle" onclick="toggleSidebar()">
+                ☰
+            </div>
+            <div class="header-title">{{.Title}}</div>
+            <div class="user-profile">
+                <span>{{.Username}}</span>
+                <a href="/admin/logout">退出</a>
+            </div>
+        </header>
+
+        <main class="content">
+            {{template "content" .}}
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>
+{{end}}

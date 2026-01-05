@@ -1,0 +1,97 @@
+{{template "head.html" .}}
+<div class="container">
+    <section class="section">
+        <div class="title">
+            <i class="fa fa-search">&nbsp;</i>关键词“<span class="red">{{.Keyword}}</span>”的搜索结果 ({{.TotalCount}}本)
+        </div>
+
+        <ul class="flex side_commend" style="width: 100%; padding: 0;">
+            {{range .Articles}}
+            <li style="width: 100%; border-bottom: 1px dashed #eee; padding: 20px 0; margin: 0;">
+                <div class="img_span" style="margin-right: 20px;">
+                    <a href="{{bookUrl .ArticleID}}">
+                        <img class="lazy" src="{{cover .ArticleID}}" title="{{.ArticleName}}"
+                            style="width: 100px; height: 133px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        {{if eq .FullFlag 1}}<span class="full">全本</span>{{end}}
+                    </a>
+                </div>
+                <div class="w100" style="flex: 1;">
+                    <a href="{{bookUrl .ArticleID}}">
+                        <h2 style="font-size: 18px; margin-bottom: 10px;">{{.ArticleName}}</h2>
+                    </a>
+                    <p class="indent"
+                        style="color: #666; font-size: 14px; line-height: 1.6; height: auto; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 15px;">
+                        {{.Intro}}
+                    </p>
+                    <div class="li_bottom" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: #999; font-size: 13px;">
+                            <i class="fa fa-user-circle-o">&nbsp;{{.Author}}</i>
+                        </span>
+                        <div>
+                            <em class="orange"
+                                style="font-style: normal; color: #ff6600; font-size: 13px; margin-right: 15px;">{{formatSize
+                                .Size}}字</em>
+                            <em class="blue" style="font-style: normal; color: #4284ed; font-size: 13px;">{{formatDate
+                                .LastUpdate}}</em>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {{else}}
+            <div style="text-align: center; padding: 100px 0; width: 100%;">
+                <i class="fa fa-frown-o" style="font-size: 48px; color: #ccc; margin-bottom: 20px; display: block;"></i>
+                <p style="color: #999; font-size: 16px;">抱歉，没找到与“<span class="red">{{.Keyword}}</span>”相关的作品</p>
+                <a href="/" class="l_btn"
+                    style="display: inline-block; width: auto; padding: 0 30px; margin-top: 20px;">去首页看看</a>
+            </div>
+            {{end}}
+        </ul>
+
+        {{if gt .TotalPage 1}}
+        <div class="pages">
+            <div class="pagelink" id="pagelink">
+                <a href="/search?key={{.Keyword}}&page=1">1</a>
+                {{if gt .Page 1}}
+                <a href="/search?key={{.Keyword}}&page={{minus .Page 1}}">&lt;&lt;</a>
+                {{else}}
+                <a href="javascript:void(0);">&lt;&lt;</a>
+                {{end}}
+
+                {{range .Pages}}
+                {{if eq . $.Page}}
+                <strong style="background: #bf2c24; color: #fff; border-color: #bf2c24;">{{.}}</strong>
+                {{else}}
+                <a href="/search?key={{.Keyword}}&page={{.}}">{{.}}</a>
+                {{end}}
+                {{end}}
+
+                {{if lt .Page .TotalPage}}
+                <a href="/search?key={{.Keyword}}&page={{plus .Page 1}}">&gt;&gt;</a>
+                {{else}}
+                <a href="javascript:void(0);">&gt;&gt;</a>
+                {{end}}
+                <a href="/search?key={{.Keyword}}&page={{.TotalPage}}">{{.TotalPage}}</a>
+            </div>
+        </div>
+        {{end}}
+    </section>
+</div>
+
+<style>
+    .section {
+        margin-top: 20px;
+        padding: 20px;
+    }
+
+    .title {
+        font-size: 20px;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .pages {
+        margin-top: 30px;
+    }
+</style>
+
+{{template "foot.html" .}}

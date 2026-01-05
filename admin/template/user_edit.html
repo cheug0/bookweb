@@ -1,0 +1,45 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">编辑用户</div>
+    <form id="editForm">
+        <input type="hidden" name="id" value="{{.User.Id}}">
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" name="username" value="{{.User.Username}}" required>
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="text" name="password" placeholder="留空则不修改">
+        </div>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" name="email" value="{{.User.Email}}">
+        </div>
+        <button type="submit" class="btn btn-primary">保存修改</button>
+        <a href="{{.AdminPath}}/users" class="btn" style="background:#95a5a6;color:#fff;">返回列表</a>
+    </form>
+</div>
+
+<script>
+    document.getElementById('editForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const body = new URLSearchParams(formData);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/user/edit', {
+                method: 'POST',
+                body: body
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                location.href = '{{.AdminPath}}/users';
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    });
+</script>
+{{end}}

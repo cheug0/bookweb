@@ -1,0 +1,73 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">小说列表 (共 {{.Total}} 本)</div>
+    <form class="search-box" method="GET">
+        <input type="text" name="keyword" value="{{.Keyword}}" placeholder="搜索小说名称或作者...">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>小说名称</th>
+                <th>作者</th>
+                <th>字数</th>
+                <th>点击</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Articles}}
+            <tr>
+                <td>{{.ArticleID}}</td>
+                <td>{{.ArticleName}}</td>
+                <td>{{.Author}}</td>
+                <td>{{.Size}}</td>
+                <td>{{.AllVisit}}</td>
+                <td>{{if eq .FullFlag 1}}完本{{else}}连载{{end}}</td>
+                <td>
+                    <a href="{{$.AdminPath}}/article/edit?id={{.ArticleID}}" class="btn btn-primary btn-sm">编辑</a>
+                    <button class="btn btn-danger btn-sm" onclick="deleteArticle('{{.ArticleID}}')">删除</button>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="7" style="text-align:center; color:#999;">暂无数据</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{if gt .TotalPage 1}}
+    <div class="pagination">
+        {{if gt .Page 1}}<a href="?page={{minus .Page 1}}&keyword={{.Keyword}}">上一页</a>{{end}}
+        <span class="current">{{.Page}} / {{.TotalPage}}</span>
+        {{if lt .Page .TotalPage}}<a href="?page={{plus .Page 1}}&keyword={{.Keyword}}">下一页</a>{{end}}
+    </div>
+    {{end}}
+</div>
+
+<script>
+    async function deleteArticle(id) {
+        if (!confirm('确定要删除这本小说及其所有章节吗？此操作不可恢复！')) return;
+
+        const params = new URLSearchParams();
+        params.append('id', id);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/article/delete', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+</script>
+{{end}}

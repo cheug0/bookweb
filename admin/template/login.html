@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台登录 - 虫虫书吧</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+
+<body class="login-page">
+    <div class="login-box">
+        <div class="login-header">
+            <h1>后台管理系统</h1>
+            <p>请登录以继续管理您的站点</p>
+        </div>
+
+        {{if .Error}}
+        <div class="alert-error">
+            {{.Error}}
+        </div>
+        {{end}}
+
+        <form method="POST" action="{{.AdminPath}}/login" class="login-form">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" name="username" class="form-input" required placeholder="请输入用户名" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" name="password" class="form-input" required placeholder="请输入密码">
+            </div>
+            <button type="submit" class="btn btn-primary">登 录</button>
+        </form>
+    </div>
+</body>
+
+</html>

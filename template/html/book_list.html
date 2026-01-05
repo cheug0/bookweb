@@ -1,0 +1,44 @@
+{{template "head.html" .}}
+
+<div class="container">
+    <section class="section">
+        <div class="chapter_list">
+            <div class="title jcc" style="display: flex; align-items: center; gap: 15px;">
+                <img src="{{cover .Article.ArticleID}}"
+                    style="width: 40px; height: 50px; object-fit: cover; border-radius: 4px;">
+                <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
+                    <span>《{{.Article.ArticleName}}》全部章节目录</span>
+                    <a href="{{bookUrl .Article.ArticleID}}"
+                        style="font-size: 14px; color: #ff6600; text-decoration: none; font-weight: normal;">返回书页</a>
+                </div>
+            </div>
+            <ul id="ul_all_chapters" class="grid-3">
+                {{range .Chapters}}
+                <li><a href="{{readUrl $.Article.ArticleID .ChapterID}}"
+                        title="{{$.Article.ArticleName}} {{.ChapterName}}">{{.ChapterName}}</a></li>
+                {{end}}
+            </ul>
+        </div>
+    </section>
+</div>
+
+<style>
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0 15px;
+    }
+
+    @media (max-width: 768px) {
+        .grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chapter_list ul.grid-3 li {
+        width: auto;
+        border-bottom: 1px solid #f8f8f8;
+    }
+</style>
+
+{{template "foot.html" .}}

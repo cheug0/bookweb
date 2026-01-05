@@ -1,0 +1,53 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">系统概览</div>
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue">
+                <i>📚</i>
+            </div>
+            <div class="stat-info">
+                <h3>小说总数</h3>
+                <p>{{.Stats.ArticleCount}}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-purple">
+                <i>👤</i>
+            </div>
+            <div class="stat-info">
+                <h3>用户总数</h3>
+                <p>{{.Stats.UserCount}}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-orange">
+                <i>👁️</i>
+            </div>
+            <div class="stat-info">
+                <h3>今日访问</h3>
+                <p>{{.Stats.TodayVisit}}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-green">
+                <i>📂</i>
+            </div>
+            <div class="stat-info">
+                <h3>分类数量</h3>
+                <p>{{.Stats.SortCount}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">快捷操作</div>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="{{.AdminPath}}/settings" class="btn btn-primary"><i>⚙️</i> 系统设置</a>
+        <a href="{{.AdminPath}}/articles" class="btn btn-primary"><i>📚</i> 小说管理</a>
+        <a href="{{.AdminPath}}/users" class="btn btn-primary"><i>👤</i> 用户管理</a>
+        <a href="{{.AdminPath}}/links" class="btn btn-primary"><i>🔗</i> 友情链接</a>
+    </div>
+</div>
+{{end}}

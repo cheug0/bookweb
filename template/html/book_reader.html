@@ -1,0 +1,90 @@
+{{template "head.html" .}}
+<script src="/static/js/jquery.cookie.js"></script>
+<script src="/static/js/reader.js"></script>
+
+<div class="read_bg">
+    <main class="container">
+        <section class="section_style">
+            <div class="text">
+                <div class="text_set">
+                    <i class="fr cog fa fa-cog fa-3x" onclick="javascript:cog();"></i>
+                    <div id="text_control">
+                        <div class="fontsize">
+                            <button onclick="javascript:changeSize('min');" title="缩小字号">A-</button>
+                            <button onclick="javascript:changeSize('normal');" title="标准字号"> A</button>
+                            <button onclick="javascript:changeSize('plus');" title="放大字号">A+</button>
+                        </div>
+                        <div>
+                            <a href="javascript:addToBookmark({{.Article.ArticleID}}, {{.Chapter.ChapterID}});"
+                                title="加入书签"><i class="fa fa-bookmark"></i></a>
+                            <a href="javascript:isnight();" title="白天夜间模式"><i
+                                    class="fa fa-moon-o fa-flip-horizontal"></i></a>
+                            <a href="javascript:;" title="极简模式"><i id="ismini" class="fa fa-minus-square"
+                                    onclick="ismini();"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text_title">
+                <p class="style_h1">{{.Chapter.ChapterName}}</p>
+                <div class="text_info">
+                    <span><a href="{{bookUrl .Article.ArticleID}}"><i class="fa fa-book">
+                                {{.Article.ArticleName}}</i></a></span>
+                    <span><a href="javascript:;"><i class="fa fa-user-circle-o"> {{.Article.Author}}</i></a></span>
+                    <span><i class="fa fa-list-ol"> {{.Chapter.Size}} 字</i></span>
+                    <span><i class="fa fa-clock-o"> {{formatDate .Chapter.LastUpdate}}</i></span>
+                </div>
+            </div>
+
+            <article id="article" class="content">
+                {{.Chapter.Content | safe}}
+            </article>
+            <div class="s_gray tc">
+                <script>tips('{{.Article.ArticleName}}');</script>
+            </div>
+        </section>
+        <div class="read_nav">
+            {{if .PrevID}}
+            <a id="prev_url" href="{{readUrl .Article.ArticleID .PrevID}}"><i class="fa fa-backward"></i> 上一章</a>
+            {{else}}
+            <a id="prev_url" href="{{bookUrl .Article.ArticleID}}"><i class="fa fa-backward"></i> 返回书页</a>
+            {{end}}
+
+            <a id="info_url" href="{{bookUrl .Article.ArticleID}}">书页/目录</a>
+
+            {{if .NextID}}
+            <a id="next_url" href="{{readUrl .Article.ArticleID .NextID}}"><i class="fa fa-forward"></i> 下一章</a>
+            {{else}}
+            <a id="next_url" href="{{bookUrl .Article.ArticleID}}"><i class="fa fa-forward"></i> 已到最后</a>
+            {{end}}
+        </div>
+    </main>
+
+
+    <script>
+        lastread.set('{{bookUrl .Article.ArticleID}}', '{{readUrl .Article.ArticleID .Chapter.ChapterID}}', '{{.Article.ArticleName}}', '{{.Chapter.ChapterName}}', '{{.Article.Author}}', '{{cover .Article.ArticleID}}');
+        document.onkeydown = () => {
+            if (event.keyCode == 37) window.location = document.querySelector('#prev_url').attributes.href.value;
+            if (event.keyCode == 39) window.location = document.querySelector('#next_url').attributes.href.value;
+            if (event.keyCode == 13) window.location = document.querySelector('#info_url').attributes.href.value;
+        }
+
+
+        function addToBookmark(articleid, chapterid) {
+            $.ajax({
+                url: "/bookmark/add",
+                type: "POST",
+                data: { articleid: articleid, chapterid: chapterid },
+                dataType: "json",
+                success: function (res) {
+                    alert(res.message);
+                },
+                error: function () {
+                    alert("请求失败，请稍后重试");
+                }
+            });
+        }
+    </script>
+
+    {{template "foot.html" .}}
+</div>

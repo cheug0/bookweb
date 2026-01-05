@@ -1,0 +1,112 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title"
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 18px; color: #333;">友情链接管理</h3>
+        <span class="badge"
+            style="background: #e3f2fd; color: #1976d2; padding: 5px 10px; border-radius: 15px; font-size: 12px;">共
+            {{len .Links}} 个</span>
+    </div>
+
+    <!-- 添加链接表单 -->
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px; border: 1px dashed #ddd;">
+        <h4 style="margin: 0 0 15px 0; font-size: 14px; color: #666;">添加新链接</h4>
+        <form id="addLinkForm" style="display: flex; gap: 15px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px; font-size: 12px;">网站名称</label>
+                <input type="text" name="name" class="form-control" placeholder="请输入网站名称" required style="width: 100%;">
+            </div>
+            <div style="flex: 2;">
+                <label style="display: block; margin-bottom: 5px; font-size: 12px;">网站链接</label>
+                <input type="text" name="url" class="form-control" placeholder="http:// 或 https://" required
+                    style="width: 100%;">
+            </div>
+            <div style="width: 80px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 12px;">排序</label>
+                <input type="number" name="order" class="form-control" value="0" style="width: 100%;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: 38px;"><i class="fa fa-plus"></i> 添加</button>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th width="10%">排序</th>
+                    <th width="25%">网站名称</th>
+                    <th width="45%">链接地址</th>
+                    <th width="20%">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range $index, $link := .Links}}
+                <tr>
+                    <td>{{$link.Order}}</td>
+                    <td style="font-weight: 500;">{{$link.Name}}</td>
+                    <td><a href="{{$link.Url}}" target="_blank" style="color: #1976d2;">{{$link.Url}}</a></td>
+                    <td>
+                        <a href="{{$.AdminPath}}/link/edit?index={{$index}}" class="btn btn-primary btn-sm"><i
+                                class="fa fa-edit"></i> 编辑</a>
+                        <button class="btn btn-danger btn-sm" onclick="deleteLink('{{$index}}')"><i
+                                class="fa fa-trash"></i> 删除</button>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="4" style="text-align:center; color:#999; padding: 40px 0;">
+                        <i class="fa fa-link"
+                            style="font-size: 40px; color: #eee; margin-bottom: 15px; display: block;"></i>
+                        暂无友情链接数据
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addLinkForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const res = await fetch('{{.AdminPath}}/link/add', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    });
+
+    async function deleteLink(index) {
+        if (!confirm('确定删除此链接？')) return;
+
+        const params = new URLSearchParams();
+        params.append('index', index);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/link/delete', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+</script>
+{{end}}

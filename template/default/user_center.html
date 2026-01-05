@@ -1,0 +1,234 @@
+{{template "head.html" .}}
+<div class="container">
+    <div class="section">
+        <p class="title"><i class="fa fa-user-circle-o">&nbsp;</i>用户中心</p>
+
+        <div class="uc_box" style="text-align: left;">
+            <div class="uc_tabs">
+                <div class="uc_tab_item active" data-tab="profile">个人资料</div>
+                <div class="uc_tab_item" data-tab="bookcase">我的书架</div>
+                <div class="uc_tab_item" data-tab="bookmark">我的书签</div>
+            </div>
+
+            <!-- Tab 1: Profile -->
+            <div id="profile" class="uc_tab_content active">
+                <div style="padding: 0 20px;">
+                    <p style="font-size: 16px; margin-bottom: 20px;">欢迎你，<span class="red">{{.Username}}</span></p>
+                    <form id="updateForm">
+                        <table class="uc_info_table uc_form">
+                            <tr>
+                                <td>用户名：</td>
+                                <td>{{.User.Username}} <span
+                                        style="font-size:12px;color:#999;margin-left:10px;">(不可修改)</span></td>
+                            </tr>
+                            {{if .User.LastLoginTime}}
+                            <tr>
+                                <td>上次登录：</td>
+                                <td>{{.User.LastLoginTime}}</td>
+                            </tr>
+                            {{end}}
+                            <tr>
+                                <td>新密码：</td>
+                                <td><input type="password" name="password" placeholder="留空则不修改"></td>
+                            </tr>
+                            <tr>
+                                <td>邮箱：</td>
+                                <td><input type="email" name="email" placeholder="请输入新邮箱"></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td><input type="submit" value="保存修改" class="l_btn"
+                                        style="border:none; width:auto; padding:0 20px;"></td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 2: Bookshelf -->
+            <!-- Tab 2: Bookshelf -->
+            <div id="bookcase" class="uc_tab_content">
+                <div style="padding: 0 20px;">
+                    {{if .Bookcases}}
+                    <p style="color: #666; margin-bottom: 20px;">我的收藏 ({{len .Bookcases}}本)</p>
+                    <table class="uc_info_table" style="width:100%;">
+                        <thead>
+                            <tr style="background:#f9f9f9; color:#666;">
+                                <th style="text-align:left; padding:10px;">小说名称</th>
+                                <th style="text-align:left; padding:10px;">最新章节</th>
+                                <th style="text-align:right; padding:10px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Bookcases}}
+                            <tr>
+                                <td style="padding:10px;"><a href="{{bookUrl .ArticleID}}"
+                                        target="_blank">{{.ArticleName}}</a></td>
+                                <td style="padding:10px;"><a href="{{readUrl .ArticleID .ChapterID}}"
+                                        target="_blank">{{.ChapterName}}</a></td>
+                                <td style="text-align:right; padding:10px;">
+                                    <a href="javascript:void(0)" onclick="deleteBookcase('{{.CaseID}}')"
+                                        style="color:#d9534f;">移出</a>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                    {{else}}
+                    <p style="color: #666; margin-bottom: 20px;">我的收藏 (0本)</p>
+                    <div style="padding: 40px; text-align: center; color: #999; border: 1px dashed #eee;">
+                        <i class="fa fa-book" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>书架空空如也，快去书城看看吧</p>
+                        <a href="/" class="l_btn"
+                            style="display:inline-block; width:auto; padding:0 20px; margin-top: 15px;">去逛逛</a>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Tab 3: 书签 -->
+            <div id="bookmark" class="uc_tab_content">
+                <div style="padding: 0 20px;">
+                    {{if .Bookmarks}}
+                    <p style="color: #666; margin-bottom: 20px;">我的书签 ({{len .Bookmarks}}章节)</p>
+                    <table class="uc_info_table" style="width:100%;">
+                        <thead>
+                            <tr style="background:#f9f9f9; color:#666;">
+                                <th style="text-align:left; padding:10px;">小说名称</th>
+                                <th style="text-align:left; padding:10px;">书签章节</th>
+                                <th style="text-align:right; padding:10px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Bookmarks}}
+                            <tr>
+                                <td style="padding:10px;"><a href="{{bookUrl .ArticleID}}"
+                                        target="_blank">{{.ArticleName}}</a></td>
+                                <td style="padding:10px;"><a href="{{readUrl .ArticleID .ChapterID}}"
+                                        target="_blank">{{.ChapterName}}{{if eq .ChapterName ""}}未知章节{{end}}</a></td>
+                                <td style="text-align:right; padding:10px;">
+                                    <a href="javascript:void(0)" onclick="deleteBookmark('{{.BookID}}')"
+                                        style="color:#d9534f;">删除</a>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                    {{else}}
+                    <p style="color: #666; margin-bottom: 20px;">我的书签 (0章节)</p>
+                    <div style="padding: 40px; text-align: center; color: #999; border: 1px dashed #eee;">
+                        <i class="fa fa-book" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>书签空空如也，快去书城看看吧</p>
+                        <a href="/" class="l_btn"
+                            style="display:inline-block; width:auto; padding:0 20px; margin-top: 15px;">去逛逛</a>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center; border-top: 1px dashed #eee; padding-top: 30px;">
+                <a href="/logout" class="l_btn_0" style="display:inline-block; width:auto; padding:0 20px;">退出登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $(".uc_tab_item").click(function () {
+            // Remove active class from all tabs
+            $(".uc_tab_item").removeClass("active");
+            // Add active class to clicked tab
+            $(this).addClass("active");
+
+            // Hide all tab contents
+            $(".uc_tab_content").removeClass("active");
+            // Show target tab content
+            var tabId = $(this).data("tab");
+            $("#" + tabId).addClass("active");
+        });
+
+        $("#updateForm").submit(function (e) {
+            e.preventDefault();
+            var password = $("input[name='password']").val();
+            var email = $("input[name='email']").val();
+
+            $.ajax({
+                url: "/user/update",
+                type: "POST",
+                data: {
+                    password: password,
+                    email: email
+                },
+                dataType: "json",
+                success: function (res) {
+                    if (res.success) {
+                        showToast(res.message);
+                        $("input[name='password']").val("");
+                    } else {
+                        showToast(res.message);
+                    }
+                },
+                error: function () {
+                    showToast("服务器错误，请稍后重试");
+                }
+            });
+        });
+    });
+
+    function deleteBookcase(caseid) {
+        if (!confirm("确定要移出书架吗？")) return;
+        $.ajax({
+            url: "/bookcase/delete",
+            type: "POST",
+            data: { caseid: caseid },
+            dataType: "json",
+            success: function (res) {
+                if (res.success) {
+                    showToast("删除成功");
+                    setTimeout(function () { location.reload(); }, 1000);
+                } else {
+                    showToast(res.message);
+                }
+            }
+        });
+    }
+
+    function deleteBookmark(bookid) {
+        if (!confirm("确定要删除书签吗？")) return;
+        $.ajax({
+            url: "/bookmark/delete",
+            type: "POST",
+            data: { bookid: bookid },
+            dataType: "json",
+            success: function (res) {
+                if (res.success) {
+                    showToast("删除成功");
+                    setTimeout(function () { location.reload(); }, 1000);
+                } else {
+                    showToast(res.message);
+                }
+            }
+        });
+    }
+
+    function showToast(message) {
+        var toast = $('<div class="toast">' + message + '</div>');
+        $('body').append(toast);
+        toast.css({
+            'position': 'fixed',
+            'top': '20%',
+            'left': '50%',
+            'transform': 'translate(-50%, -50%)',
+            'background': 'rgba(0,0,0,0.7)',
+            'color': '#fff',
+            'padding': '15px 30px',
+            'border-radius': '5px',
+            'z-index': '9999',
+            'display': 'none'
+        });
+        toast.fadeIn(300).delay(2000).fadeOut(300, function () {
+            $(this).remove();
+        });
+    }
+</script>
+{{template "foot.html" .}}

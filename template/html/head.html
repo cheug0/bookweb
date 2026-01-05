@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{.CurrentTitle}}</title>
+    <meta name="keywords" content="{{.CurrentKeywords}}">
+    <meta name="description" content="{{.CurrentDesc}}">
+    <!-- header -->
+    <meta name="robots" content="all">
+    <meta name="googlebot" content="all">
+    <meta name="baiduspider" content="all">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+    <base target="_self">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/img/favicon.ico" media="screen">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=1.1">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/opencc.js"></script>
+    <script src="/static/js/zh_tran.js"></script>
+
+</head>
+
+<body>
+    <header>
+        <div class="container head">
+            <a id="logo" href="/"><span>{{.SiteName}}</span>
+                <p>{{.SiteDomain}}</p>
+            </a>
+            <div class="search">
+                <input type="text" id="search" placeholder="小说搜索">
+                <button id="search-btn">搜索</button>
+            </div>
+        </div>
+    </header>
+    <div class="navigation">
+        <nav class="container">
+            <a href="/">首页</a>
+            {{range .SortLinks}}
+            <a href="{{.Url}}">{{.Caption}}</a>
+            {{end}}
+
+            <div id="user_panel">
+                {{if .IsLogin}}
+                <a href="/user" style="color: #d32f2f;">{{.Username}}</a>
+                {{else}}
+                <a href="/login">登录</a>
+                {{end}}
+                <a href="{{.TopUrl}}">排行</a>
+            </div>
+        </nav>
+    </div>
+    <script>
+        $(document).ready(function () {
+            function doSearch() {
+                var key = $("#search").val();
+                if (key) {
+                    window.location.href = "/search?key=" + encodeURIComponent(key);
+                }
+            }
+
+            $("#search-btn").click(function () {
+                doSearch();
+            });
+
+            $("#search").keypress(function (e) {
+                if (e.which == 13) {
+                    doSearch();
+                }
+            });
+        });
+    </script>
+    <!-- /header -->

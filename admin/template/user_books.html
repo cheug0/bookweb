@@ -1,0 +1,101 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">用户书籍管理 - {{.User.Username}}</div>
+
+    <h3>我的书架</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>小说名称</th>
+                <th>最新章节</th>
+                <th>加入时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Bookcases}}
+            <tr>
+                <td>{{.CaseID}}</td>
+                <td>{{.ArticleName}}</td>
+                <td>{{.ChapterName}}</td>
+                <td>{{.JoinDate}}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteBookcase('{{.CaseID}}')">删除</button>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="5" style="text-align:center; color:#999;">暂无书架记录</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <h3 style="margin-top: 30px;">我的书签</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>小说名称</th>
+                <th>章节名称</th>
+                <th>加入时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Bookmarks}}
+            <tr>
+                <td>{{.BookID}}</td>
+                <td>{{.ArticleName}}</td>
+                <td>{{.ChapterName}}</td>
+                <td>{{.JoinDate}}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteBookmark('{{.BookID}}')">删除</button>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="5" style="text-align:center; color:#999;">暂无书签记录</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <a href="{{.AdminPath}}/users" class="btn" style="background:#95a5a6;color:#fff;">返回用户列表</a>
+    </div>
+</div>
+
+<script>
+    async function deleteBookcase(id) {
+        if (!confirm('确定要删除这条书架记录吗？')) return;
+        const params = new URLSearchParams();
+        params.append('id', id);
+        try {
+            const res = await fetch('{{.AdminPath}}/user/bookcase/delete', { method: 'POST', body: params });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+
+    async function deleteBookmark(id) {
+        if (!confirm('确定要删除这条书签记录吗？')) return;
+        const params = new URLSearchParams();
+        params.append('id', id);
+        try {
+            const res = await fetch('{{.AdminPath}}/user/bookmark/delete', { method: 'POST', body: params });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+</script>
+{{end}}

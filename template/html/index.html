@@ -1,0 +1,103 @@
+{{template "head.html" .}}
+<!-- home -->
+<div class="container">
+
+    <!-- 大神小说 -->
+    <div class="side_commend side_commend_width">
+        <p class="title"><i class="fa fa-thumbs-o-up fa-lg">&nbsp;</i>大神小说</p>
+        <ul class="flex">
+            {{range .TopArticles}}
+            <li>
+                <div class="img_span"><a href="{{bookUrl .ArticleID}}"><img src="{{cover .ArticleID}}"
+                            title="{{.ArticleName}}" /></a><span>{{index $.SortMap .SortID}} / {{if eq .FullFlag
+                        1}}全本{{else}}连载{{end}}</span></div>
+                <div class="w100"><a href="{{bookUrl .ArticleID}}">
+                        <h2>{{.ArticleName}}</h2>
+                    </a>
+                    <p class="indent">{{.Intro}}</p>
+                    <div class="li_bottom"><a href="javascript:;"><i
+                                class="fa fa-user-circle-o">&nbsp;{{.Author}}</i></a>
+                        <div><em class="orange">{{formatSize .Size}}字</em><em class="blue">{{formatDate
+                                .LastUpdate}}</em></div>
+                    </div>
+                </div>
+            </li>
+            {{end}}
+        </ul>
+    </div>
+
+    <!-- 热门小说 -->
+    <aside>
+        <p class="title"><i class="fa fa-fire fa-lg">&nbsp;</i>热门小说</p>
+        <ul class="popular odd">
+            {{range .HotArticles}}
+            <li><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a><a class="gray" href="javascript:;">{{.Author}}</a>
+            </li>
+            {{end}}
+        </ul>
+    </aside>
+</div>
+
+<div class="container">
+    <div class="section flex">
+        <!-- 分类循环 -->
+        {{range .Blocks}}
+        <div class="sortvisit"><a href="/sort/{{.Sort.SortID}}/1/">{{.Sort.Caption}}</a>
+            <ul>
+                {{if .Articles}}
+                {{with index .Articles 0}}
+                <div><a href="{{bookUrl .ArticleID}}"><img class="lazy" src="{{cover .ArticleID}}"
+                            title="{{.ArticleName}}"></a>
+                    <p><a
+                            href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a><i>&nbsp;/&nbsp;{{.Author}}</i><br>&nbsp;&nbsp;&nbsp;&nbsp;{{.Intro}}
+                    </p>
+                </div>
+                {{end}}
+                {{range (slice .Articles 1)}}
+                <li><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a><i>&nbsp;/ {{.Author}}</i></li>
+                {{end}}
+                {{end}}
+            </ul>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<div class="container">
+    <!-- 最新章节 -->
+    <div class="lastupdate">
+        <p class="title"><i class="fa fa-clock-o fa-lg">&nbsp;</i>最新章节</p>
+        <ul class="odd">
+            {{range .LatestUpdates}}
+            <li><span>「{{index $.SortMap .SortID}}」</span>
+                <a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a>
+                <a class="gray" href="{{readUrl .ArticleID .LastChapterID}}">{{.LastChapter}}</a>
+                <span><a class="gray" href="javascript:;">{{.Author}}</a>&nbsp;&nbsp;{{formatDate .LastUpdate}}</span>
+            </li>
+            {{end}}
+        </ul>
+    </div>
+
+    <!-- 最新小说 -->
+    <aside>
+        <p class="title"><i class="fa fa-pencil fa-lg">&nbsp;</i>最新小说</p>
+        <ul class="popular odd">
+            {{range .NewArticles}}
+            <li><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a>
+                <a class="gray" href="javascript:;">{{.Author}}</a>
+            </li>
+            {{end}}
+        </ul>
+    </aside>
+</div>
+
+<div class="container">
+    <div class="section link">
+        <p class="title"><i class="fa fa-link">&nbsp;</i>友情链接</p>
+        {{range .Links}}
+        <a href="{{.Url}}" target="_blank">{{.Name}}</a>
+        {{end}}
+    </div>
+</div>
+<!-- /home -->
+{{template "foot.html" .}}

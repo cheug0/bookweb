@@ -1,0 +1,249 @@
+{{define "content"}}
+<div class="tabs">
+    <div class="tab-btn active" onclick="switchTab(this, 'basic')">基本参数设置</div>
+    <div class="tab-btn" onclick="switchTab(this, 'db')">数据库设置</div>
+</div>
+
+<div id="basic" class="tab-content active">
+    <div class="card">
+        <form id="settingsForm">
+            <input type="hidden" name="update_type" value="basic">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <!-- 左列：站点信息 -->
+                <div>
+                    <h4
+                        style="margin-bottom: 15px; color: #666; font-size: 14px; border-left: 3px solid #bf2c24; padding-left: 10px;">
+                        站点信息</h4>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">网站名称</label>
+                        <input type="text" name="sitename" value="{{.Config.Site.SiteName}}" class="form-control"
+                            style="width: 100%;" required>
+                        <small style="color: #999;">显示在浏览器标题和页面头部</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">绑定域名</label>
+                        <input type="text" name="domain" value="{{.Config.Site.Domain}}" class="form-control"
+                            style="width: 100%;">
+                        <small style="color: #999;">例如: www.example.com</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">模板主题</label>
+                        <input type="text" name="template" value="{{.Config.Site.Template}}" class="form-control"
+                            style="width: 100%;" placeholder="html">
+                        <small style="color: #999;">模板目录名称</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">搜索间隔 (秒)</label>
+                        <input type="number" name="search_limit" value="{{.Config.Site.SearchLimit}}"
+                            class="form-control" style="width: 100%;" placeholder="0">
+                        <small style="color: #999;">限制搜索频率，0 为不限制</small>
+                    </div>
+
+                </div>
+
+                <!-- 右列：存储设置 -->
+                <div>
+                    <h4
+                        style="margin-bottom: 15px; color: #666; font-size: 14px; border-left: 3px solid #bf2c24; padding-left: 10px;">
+                        存储设置</h4>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">存储模式</label>
+                        <select name="storage_type" class="form-control" style="width: 100%;"
+                            onchange="toggleStorageSettings(this.value)">
+                            <option value="local" {{if eq .Config.Storage.Type "local" }}selected{{end}}>本地存储</option>
+                            <option value="oss" {{if eq .Config.Storage.Type "oss" }}selected{{end}}>对象存储 (OSS)</option>
+                        </select>
+                    </div>
+
+                    <!-- 本地存储设置 -->
+                    <!-- 本地存储设置 -->
+                    <!-- 本地存储设置 -->
+                    <div id="local-settings"
+                        style='display: {{if eq .Config.Storage.Type "local"}}block{{else}}none{{end}};'>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">本地存储路径</label>
+                            <input type="text" name="storage_path" value="{{.Config.Storage.Local.Path}}"
+                                class="form-control" style="width: 100%;" placeholder="files">
+                            <small style="color: #999;">相对于程序运行目录的路径，或者绝对路径</small>
+                        </div>
+                    </div>
+
+                    <!-- OSS 设置 -->
+                    <div id="oss-settings"
+                        style='display: {{if eq .Config.Storage.Type "oss"}}block{{else}}none{{end}};'>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Endpoint (节点)</label>
+                            <input type="text" name="oss_endpoint" value="{{.Config.Storage.Oss.Endpoint}}"
+                                class="form-control" style="width: 100%;"
+                                placeholder="例如: oss-cn-hangzhou.aliyuncs.com">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Access Key</label>
+                            <input type="text" name="oss_access_key" value="{{.Config.Storage.Oss.AccessKey}}"
+                                class="form-control" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Secret Key</label>
+                            <input type="password" name="oss_secret_key" value="{{.Config.Storage.Oss.SecretKey}}"
+                                class="form-control" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Bucket (存储桶)</label>
+                            <input type="text" name="oss_bucket" value="{{.Config.Storage.Oss.Bucket}}"
+                                class="form-control" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">访问域名</label>
+                            <input type="text" name="oss_domain" value="{{.Config.Storage.Oss.Domain}}"
+                                class="form-control" style="width: 100%;"
+                                placeholder="例如: http://example.oss-cn-hangzhou.aliyuncs.com">
+                            <small style="color: #999;">配置后图片将从该域名加载</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions"
+                style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <button type="submit" class="btn btn-primary"
+                    style="padding: 10px 40px; font-size: 16px;">保存系统设置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="db" class="tab-content">
+    <div class="card">
+        <div class="card-title" style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 18px; color: #333;">数据库配置</h3>
+        </div>
+
+        <div class="alert alert-warning" style="margin-bottom: 20px;">
+            <i class="fa fa-exclamation-triangle"></i> 警告：修改数据库配置可能导致系统无法连接数据库。修改后请点击“测试连接”确保配置正确，保存后需重启服务生效。
+        </div>
+
+        <form id="dbForm">
+            <input type="hidden" name="update_type" value="db">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">数据库驱动 (Driver)</label>
+                    <input type="text" name="db_driver" value="{{.Config.Db.Driver}}" class="form-control"
+                        style="width: 100%;" placeholder="mysql">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">数据库主机 (Host)</label>
+                    <input type="text" name="db_host" value="{{.Config.Db.Host}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">端口 (Port)</label>
+                    <input type="number" name="db_port" value="{{.Config.Db.Port}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">数据库名称 (DbName)</label>
+                    <input type="text" name="db_dbname" value="{{.Config.Db.DbName}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">用户名 (User)</label>
+                    <input type="text" name="db_user" value="{{.Config.Db.User}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">密码 (Password)</label>
+                    <input type="password" name="db_password" value="{{.Config.Db.Password}}" class="form-control"
+                        style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="form-actions"
+                style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn btn-info" onclick="testDbConnection()"
+                    style="margin-right: 15px;">测试连接</button>
+                <button type="submit" class="btn btn-primary"
+                    style="padding: 10px 40px; font-size: 16px;">保存数据库配置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function switchTab(btn, tabId) {
+        // 移除所有激活状态
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        // 激活当前
+        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', handleSettingsSubmit);
+    }
+
+    const dbForm = document.getElementById('dbForm');
+    if (dbForm) {
+        dbForm.addEventListener('submit', handleSettingsSubmit); // Use same handler or creating a specialized one
+    }
+
+    async function handleSettingsSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const body = new URLSearchParams(formData);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/settings', {
+                method: 'POST',
+                body: body
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('保存成功');
+                location.reload();
+            } else {
+                alert('保存失败: ' + data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+
+    async function testDbConnection() {
+        const form = document.getElementById('dbForm');
+        const formData = new FormData(form);
+        // Extract raw values for test
+        const params = new URLSearchParams();
+        params.append('driver', formData.get('db_driver'));
+        params.append('host', formData.get('db_host'));
+        params.append('port', formData.get('db_port'));
+        params.append('user', formData.get('db_user'));
+        params.append('password', formData.get('db_password'));
+        params.append('dbname', formData.get('db_dbname'));
+
+        try {
+            const res = await fetch('{{.AdminPath}}/db/test', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+    function toggleStorageSettings(type) {
+        if (type === 'local') {
+            document.getElementById('local-settings').style.display = 'block';
+            document.getElementById('oss-settings').style.display = 'none';
+        } else {
+            document.getElementById('local-settings').style.display = 'none';
+            document.getElementById('oss-settings').style.display = 'block';
+        }
+    }
+</script>
+{{end}}

@@ -1,0 +1,94 @@
+{{template "head.html" .}}
+<!-- sort -->
+<div class="store">
+    <div class="store_left">
+        <i id="store_menu" class="fa fa-bars fa-3x" onclick="javascript: store_menu();" title="筛选菜单"></i>
+        <div class="side_commend">
+            <div class="title">{{.Caption}}</div>
+            <!-- wap 端 -->
+            <div id="after_menu">
+                <div>
+                    <a href="javascript:"><label><input type="checkbox" /> 只看全本</label></a>
+                </div>
+                <div>
+                    <a href="/sort/0/1/" {{if eq .CurrentSID 0}}class="onselect" {{end}}>全部分类</a>
+                    {{range .Sorts}}
+                    <a href="/sort/{{.SortID}}/1/" {{if eq $.CurrentSID .SortID}}class="onselect"
+                        {{end}}>{{.Caption}}</a>
+                    {{end}}
+                </div>
+            </div>
+            <!-- /wap 端 -->
+
+            <ul class="flex">
+                {{range .Articles}}
+                <li>
+                    <div class="img_span">
+                        <a href="{{bookUrl .ArticleID}}">
+                            <img class="lazy" src="{{cover .ArticleID}}" title="{{.ArticleName}}" />
+                            {{if eq .FullFlag 1}}<span class="full">全本</span>{{end}}
+                        </a>
+                    </div>
+                    <div class="w100">
+                        <a href="{{bookUrl .ArticleID}}">
+                            <h2>{{.ArticleName}}</h2>
+                        </a>
+                        <p class="indent">{{.Intro}}</p>
+                        <div class="li_bottom">
+                            <a href="javascript:;"><i class="fa fa-user-circle-o">&nbsp;{{.Author}}</i></a>
+                            <div>
+                                <em class="orange">{{formatSize .Size}}字</em><em class="blue">{{formatDate
+                                    .LastUpdate}}</em>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {{else}}
+                <div style="text-align: center; padding: 50px; color: #999;">该分类下暂无小说内容</div>
+                {{end}}
+            </ul>
+
+            <div class="pages">
+                <div class="pagelink" id="pagelink">
+                    <a href="/sort/{{.CurrentSID}}/1/">1</a>
+                    {{if gt .Page 1}}
+                    <a href="/sort/{{.CurrentSID}}/{{minus .Page 1}}">&lt;&lt;</a>
+                    {{else}}
+                    <a href="javascript:void(0);">&lt;&lt;</a>
+                    {{end}}
+
+                    {{range .Pages}}
+                    {{if eq . $.Page}}
+                    <strong>{{.}}</strong>
+                    {{else}}
+                    <a href="/sort/{{$.CurrentSID}}/{{.}}/">{{.}}</a>
+                    {{end}}
+                    {{end}}
+
+                    {{if lt .Page .TotalPage}}
+                    <a href="/sort/{{.CurrentSID}}/{{plus .Page 1}}">&gt;&gt;</a>
+                    {{else}}
+                    <a href="javascript:void(0);">&gt;&gt;</a>
+                    {{end}}
+                    <a href="/sort/{{.CurrentSID}}/{{.TotalPage}}/">{{.TotalPage}}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 右边 -->
+    <div id="store_right">
+        <ul>
+            <li><a href="/sort/0/1/" {{if eq .CurrentSID 0}}class="onselect" {{end}}>全部分类</a></li>
+        </ul>
+
+        <ul>
+            {{range .Sorts}}
+            <li><a href="/sort/{{.SortID}}/1/" {{if eq $.CurrentSID .SortID}}class="onselect" {{end}}>{{.Caption}}</a>
+            </li>
+            {{end}}
+        </ul>
+    </div>
+
+</div>
+<!-- /sort -->
+{{template "foot.html" .}}

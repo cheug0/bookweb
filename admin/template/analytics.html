@@ -1,0 +1,38 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">统计代码</div>
+    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+        在此处添加第三方统计代码（如百度统计、Google Analytics 等），代码将自动添加到网站 foot.html 模板中。
+    </p>
+    <form id="analyticsForm">
+        <div class="form-group">
+            <label>统计代码</label>
+            <textarea name="analytics" rows="10" placeholder="粘贴您的统计代码...">{{.Analytics}}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('analyticsForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const res = await fetch('{{.AdminPath}}/analytics', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    });
+</script>
+{{end}}

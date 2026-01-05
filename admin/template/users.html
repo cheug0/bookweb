@@ -1,0 +1,64 @@
+{{define "content"}}
+<div class="card">
+    <div class="card-title">用户列表 (共 {{.Total}} 人)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                <tr>
+                    <td>{{.Id}}</td>
+                    <td>{{.Username}}</td>
+                    <td>
+                        <a href="{{$.AdminPath}}/user/edit?id={{.Id}}" class="btn btn-primary btn-sm">编辑</a>
+                        <a href="{{$.AdminPath}}/user/books?id={{.Id}}" class="btn btn-info btn-sm">书籍管理</a>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('{{.Id}}')">删除</button>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="3" style="text-align:center; color:#999; padding: 30px;">暂无用户</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{if gt .TotalPage 1}}
+    <div class="pagination">
+        {{if gt .Page 1}}<a href="?page={{minus .Page 1}}">上一页</a>{{end}}
+        <span class="current">{{.Page}} / {{.TotalPage}}</span>
+        {{if lt .Page .TotalPage}}<a href="?page={{plus .Page 1}}">下一页</a>{{end}}
+    </div>
+    {{end}}
+</div>
+
+<script>
+    async function deleteUser(id) {
+        if (!confirm('确定要删除该用户及其书架、书签数据吗？')) return;
+
+        const params = new URLSearchParams();
+        params.append('id', id);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/user/delete', {
+                method: 'POST',
+                body: params
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+</script>
+{{end}}
