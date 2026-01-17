@@ -50,14 +50,14 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	pageSize := 20
 	offset := (currentPage - 1) * pageSize
 
-	// 3. 执行搜索查询
-	articles, err := dao.SearchArticles(keyword, offset, pageSize)
+	// 3. 执行搜索查询 (使用缓存)
+	articles, err := dao.SearchArticlesCached(keyword, offset, pageSize)
 	if err != nil {
 		http.Error(w, "搜索请求失败", http.StatusInternalServerError)
 		return
 	}
 
-	totalCount, err := dao.GetSearchCount(keyword)
+	totalCount, err := dao.GetSearchCountCached(keyword)
 	if err != nil {
 		totalCount = 0
 	}

@@ -14,6 +14,7 @@ const (
 	ChaptersCacheTTL = 10 * time.Minute
 	SortsCacheTTL    = 30 * time.Minute
 	RankCacheTTL     = 5 * time.Minute
+	SearchCacheTTL   = 3 * time.Minute
 )
 
 // Cache key generators
@@ -33,33 +34,49 @@ func rankCacheKey(orderBy string, limit int) string {
 	return fmt.Sprintf("rank:%s:%d", orderBy, limit)
 }
 
+func searchCacheKey(keyword string, offset, limit int) string {
+	return fmt.Sprintf("search:%s:%d:%d", keyword, offset, limit)
+}
+
+func searchCountCacheKey(keyword string) string {
+	return fmt.Sprintf("search_count:%s", keyword)
+}
+
+// getCached 泛型缓存获取函数
+func getCached[T any](key string, ttl time.Duration, fetchFunc func() (T, error)) (T, error) {
+	// 1. Check Cache
+	cached, err := utils.CacheGet(key)
+	if err == nil && cached != "" {
+		var result T
+		if json.Unmarshal([]byte(cached), &result) == nil {
+			return result, nil
+		}
+	}
+
+	// 2. Fetch
+	result, err := fetchFunc()
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+
+	// 3. Set Cache
+	if data, err := json.Marshal(result); err == nil {
+		utils.CacheSet(key, string(data), ttl)
+	}
+
+	return result, nil
+}
+
 // GetArticleByIDCached 带缓存的获取文章
 func GetArticleByIDCached(id int) (*model.Article, error) {
 	if !utils.IsRedisEnabled() {
 		return GetArticleByID(id)
 	}
 
-	key := articleCacheKey(id)
-	cached, err := utils.CacheGet(key)
-	if err == nil && cached != "" {
-		var article model.Article
-		if json.Unmarshal([]byte(cached), &article) == nil {
-			return &article, nil
-		}
-	}
-
-	// Cache miss, get from DB
-	article, err := GetArticleByID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Store in cache
-	if data, err := json.Marshal(article); err == nil {
-		utils.CacheSet(key, string(data), ArticleCacheTTL)
-	}
-
-	return article, nil
+	return getCached(articleCacheKey(id), ArticleCacheTTL, func() (*model.Article, error) {
+		return GetArticleByID(id)
+	})
 }
 
 // GetChaptersByArticleIDCached 带缓存的获取章节列表
@@ -68,26 +85,9 @@ func GetChaptersByArticleIDCached(articleID int) ([]*model.Chapter, error) {
 		return GetChaptersByArticleID(articleID)
 	}
 
-	key := chaptersCacheKey(articleID)
-	cached, err := utils.CacheGet(key)
-	if err == nil && cached != "" {
-		var chapters []*model.Chapter
-		if json.Unmarshal([]byte(cached), &chapters) == nil {
-			return chapters, nil
-		}
-	}
-
-	// Cache miss
-	chapters, err := GetChaptersByArticleID(articleID)
-	if err != nil {
-		return nil, err
-	}
-
-	if data, err := json.Marshal(chapters); err == nil {
-		utils.CacheSet(key, string(data), ChaptersCacheTTL)
-	}
-
-	return chapters, nil
+	return getCached(chaptersCacheKey(articleID), ChaptersCacheTTL, func() ([]*model.Chapter, error) {
+		return GetChaptersByArticleID(articleID)
+	})
 }
 
 // GetAllSortsCached 带缓存的获取所有分类
@@ -96,25 +96,9 @@ func GetAllSortsCached() ([]*model.Sort, error) {
 		return GetAllSorts()
 	}
 
-	key := sortsCacheKey()
-	cached, err := utils.CacheGet(key)
-	if err == nil && cached != "" {
-		var sorts []*model.Sort
-		if json.Unmarshal([]byte(cached), &sorts) == nil {
-			return sorts, nil
-		}
-	}
-
-	sorts, err := GetAllSorts()
-	if err != nil {
-		return nil, err
-	}
-
-	if data, err := json.Marshal(sorts); err == nil {
-		utils.CacheSet(key, string(data), SortsCacheTTL)
-	}
-
-	return sorts, nil
+	return getCached(sortsCacheKey(), SortsCacheTTL, func() ([]*model.Sort, error) {
+		return GetAllSorts()
+	})
 }
 
 // GetRankArticlesCached 带缓存的获取排行榜
@@ -123,25 +107,9 @@ func GetRankArticlesCached(orderBy string, limit int) ([]*model.Article, error) 
 		return GetRankArticles(orderBy, limit)
 	}
 
-	key := rankCacheKey(orderBy, limit)
-	cached, err := utils.CacheGet(key)
-	if err == nil && cached != "" {
-		var articles []*model.Article
-		if json.Unmarshal([]byte(cached), &articles) == nil {
-			return articles, nil
-		}
-	}
-
-	articles, err := GetRankArticles(orderBy, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	if data, err := json.Marshal(articles); err == nil {
-		utils.CacheSet(key, string(data), RankCacheTTL)
-	}
-
-	return articles, nil
+	return getCached(rankCacheKey(orderBy, limit), RankCacheTTL, func() ([]*model.Article, error) {
+		return GetRankArticles(orderBy, limit)
+	})
 }
 
 // InvalidateArticleCache 使文章缓存失效
@@ -157,4 +125,26 @@ func InvalidateSortsCache() {
 	if utils.IsRedisEnabled() {
 		utils.CacheDel(sortsCacheKey())
 	}
+}
+
+// SearchArticlesCached 带缓存的搜索文章
+func SearchArticlesCached(keyword string, offset, limit int) ([]*model.Article, error) {
+	if !utils.IsRedisEnabled() {
+		return SearchArticles(keyword, offset, limit)
+	}
+
+	return getCached(searchCacheKey(keyword, offset, limit), SearchCacheTTL, func() ([]*model.Article, error) {
+		return SearchArticles(keyword, offset, limit)
+	})
+}
+
+// GetSearchCountCached 带缓存的获取搜索结果总数
+func GetSearchCountCached(keyword string) (int, error) {
+	if !utils.IsRedisEnabled() {
+		return GetSearchCount(keyword)
+	}
+
+	return getCached(searchCountCacheKey(keyword), SearchCacheTTL, func() (int, error) {
+		return GetSearchCount(keyword)
+	})
 }

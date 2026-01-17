@@ -61,6 +61,26 @@ func CacheDel(key string) error {
 	return RedisClient.Del(redisCtx, key).Err()
 }
 
+// CacheIncr 增加缓存计数
+func CacheIncr(key string) (int64, error) {
+	if RedisClient == nil {
+		return 0, fmt.Errorf("redis not enabled")
+	}
+	return RedisClient.Incr(redisCtx, key).Result()
+}
+
+// CacheGetSet 设置新值并返回旧值
+func CacheGetSet(key string, value interface{}) (string, error) {
+	if RedisClient == nil {
+		return "", fmt.Errorf("redis not enabled")
+	}
+	val, err := RedisClient.GetSet(redisCtx, key, value).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	return val, err
+}
+
 // IsRedisEnabled 检查 Redis 是否已启用
 func IsRedisEnabled() bool {
 	return RedisClient != nil

@@ -3,6 +3,7 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"fmt"
 )
 
 // GetArticleByID 根据ArticleID获取小说信息
@@ -215,8 +216,100 @@ func GetSearchCount(keyword string) (int, error) {
 	return count, err
 }
 
-// IncArticleVisit 增加文章点击量
+// IncArticleVisit 增加文章点击量 (优化版：Redis 缓冲 + 批量回写)
 func IncArticleVisit(id int) error {
+	const FlushThreshold = 10
+
+	// 如果开启了 Redis，先尝试在 Redis 中缓冲
+	if utils.IsRedisEnabled() {
+		bufferKey := fmt.Sprintf("article:visit_buffer:%d", id)
+
+		// 1. 增加缓冲区计数
+		val, err := utils.CacheIncr(bufferKey)
+		if err != nil {
+			// 如果 Redis 操作失败，记录错误并降级到直接写库 (这里简化处理，直接返回错误或继续)
+			// 为保证数据一致性，如果 Redis 挂了，这里可以选择降级
+			fmt.Printf("Redis Incr failed: %v\n", err)
+		} else {
+			// 如果未达到阈值，直接返回，不写库
+			if val < FlushThreshold {
+				return nil
+			}
+
+			// 达到阈值，获取并重置缓冲区
+			// 使用 GetSet 原子性地重置为 0 并拿到旧值
+			oldValStr, err := utils.CacheGetSet(bufferKey, 0)
+			if err != nil {
+				return err
+			}
+
+			// 解析增加的访问量
+			delta := 0
+			fmt.Sscanf(oldValStr, "%d", &delta)
+
+			// 如果 delta <= 0 说明可能并发重置了，或者刚重置完
+			if delta <= 0 {
+				return nil
+			}
+
+			// 2. 准备回写数据库
+			article, err := GetArticleByID(id)
+			if err != nil {
+				return err
+			}
+
+			now := utils.NowTime()
+			lastVisit := article.LastVisit
+
+			// 3. 判断是否需要重置 (按时间)
+			resetDay := !utils.IsSameDay(lastVisit, now)
+			resetWeek := !utils.IsSameWeek(lastVisit, now)
+			resetMonth := !utils.IsSameMonth(lastVisit, now)
+
+			// 4. 构建 SQL
+			sqlStr := "update jieqi_article_article set allvisit=allvisit+?, lastvisit=?"
+			args := []interface{}{delta, now}
+
+			if resetDay {
+				sqlStr += ", dayvisit=?"
+				args = append(args, delta)
+			} else {
+				sqlStr += ", dayvisit=dayvisit+?"
+				args = append(args, delta)
+			}
+
+			if resetWeek {
+				sqlStr += ", weekvisit=?"
+				args = append(args, delta)
+			} else {
+				sqlStr += ", weekvisit=weekvisit+?"
+				args = append(args, delta)
+			}
+
+			if resetMonth {
+				sqlStr += ", monthvisit=?"
+				args = append(args, delta)
+			} else {
+				sqlStr += ", monthvisit=monthvisit+?"
+				args = append(args, delta)
+			}
+
+			sqlStr += " where articleid=?"
+			args = append(args, id)
+
+			_, err = utils.Db.Exec(sqlStr, args...)
+
+			// 5. 假如写入成功，清理相关页面缓存
+			if err == nil {
+				InvalidateArticleCache(id)
+			}
+
+			return err
+		}
+	}
+
+	// === 降级处理 / 未开启 Redis 的原有逻辑 ===
+
 	// 1. 获取当前点击量信息
 	article, err := GetArticleByID(id)
 	if err != nil {
@@ -232,8 +325,6 @@ func IncArticleVisit(id int) error {
 	resetMonth := !utils.IsSameMonth(lastVisit, now)
 
 	// 3. 更新点击量
-	// 注意：这里需要处理并发更新问题，但在高并发场景下，通常会使用 Redis 计数然后定期回写 DB
-	// 这里采用简单的 SQL 更新
 	sqlStr := "update jieqi_article_article set allvisit=allvisit+1, lastvisit=?"
 	args := []interface{}{now}
 
@@ -259,5 +350,11 @@ func IncArticleVisit(id int) error {
 	args = append(args, id)
 
 	_, err = utils.Db.Exec(sqlStr, args...)
+
+	// 清理缓存
+	if err == nil && utils.IsRedisEnabled() {
+		InvalidateArticleCache(id)
+	}
+
 	return err
 }
