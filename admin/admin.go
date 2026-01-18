@@ -3,10 +3,12 @@ package admin
 import (
 	"bookweb/config"
 	"bookweb/dao"
+	"bookweb/plugin"
 	"bookweb/utils"
 	"encoding/json"
 	"html/template"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 )
@@ -779,4 +781,139 @@ func TestRedisConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse(w, map[string]interface{}{"success": true, "message": "连接成功！"})
+}
+
+// Plugins 插件管理页面
+func Plugins(w http.ResponseWriter, r *http.Request) {
+	pluginConfigs := plugin.GetManager().GetAllConfigs()
+
+	t, err := parseTpl("layout.html", "plugins.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	data := getAdminData(r, "plugins", "插件管理")
+	data["Plugins"] = pluginConfigs
+	t.ExecuteTemplate(w, "layout", data)
+}
+
+// PluginToggle 启用/禁用插件
+func PluginToggle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Name    string `json:"name"`
+		Enabled bool   `json:"enabled"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "无效的数据格式"})
+		return
+	}
+
+	// 读取配置文件
+	pluginConfigs, err := loadPluginConfigFile()
+	if err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "读取配置失败: " + err.Error()})
+		return
+	}
+
+	// 更新启用状态
+	if cfg, ok := pluginConfigs[req.Name]; ok {
+		cfg["enabled"] = req.Enabled
+		pluginConfigs[req.Name] = cfg
+	} else {
+		pluginConfigs[req.Name] = map[string]interface{}{"enabled": req.Enabled}
+	}
+
+	// 保存配置文件
+	if err := savePluginConfigFile(pluginConfigs); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "保存配置失败: " + err.Error()})
+		return
+	}
+
+	// 热更新插件配置
+	if err := plugin.GetManager().UpdatePluginConfig(req.Name, pluginConfigs[req.Name]); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": true, "message": "配置已保存，但热更新失败: " + err.Error()})
+		return
+	}
+
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "操作成功，已立即生效"})
+}
+
+// PluginConfigUpdate 更新插件配置
+func PluginConfigUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Name   string                 `json:"name"`
+		Config map[string]interface{} `json:"config"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "无效的数据格式"})
+		return
+	}
+
+	// 读取配置文件
+	pluginConfigs, err := loadPluginConfigFile()
+	if err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "读取配置失败: " + err.Error()})
+		return
+	}
+
+	// 更新配置
+	if existing, ok := pluginConfigs[req.Name]; ok {
+		// 保留 enabled 状态
+		for key, value := range req.Config {
+			existing[key] = value
+		}
+		pluginConfigs[req.Name] = existing
+	} else {
+		pluginConfigs[req.Name] = req.Config
+	}
+
+	// 保存配置文件
+	if err := savePluginConfigFile(pluginConfigs); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "保存配置失败: " + err.Error()})
+		return
+	}
+
+	// 热更新插件配置
+	if err := plugin.GetManager().UpdatePluginConfig(req.Name, pluginConfigs[req.Name]); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": true, "message": "配置已保存，但热更新失败: " + err.Error()})
+		return
+	}
+
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "配置保存成功，已立即生效"})
+}
+
+// loadPluginConfigFile 读取插件配置文件
+func loadPluginConfigFile() (map[string]map[string]interface{}, error) {
+	file, err := os.Open("config/plugins.conf")
+	if err != nil {
+		return make(map[string]map[string]interface{}), nil
+	}
+	defer file.Close()
+
+	var configs map[string]map[string]interface{}
+	if err := json.NewDecoder(file).Decode(&configs); err != nil {
+		return nil, err
+	}
+	return configs, nil
+}
+
+// savePluginConfigFile 保存插件配置文件
+func savePluginConfigFile(configs map[string]map[string]interface{}) error {
+	data, err := json.MarshalIndent(configs, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile("config/plugins.conf", data, 0644)
 }

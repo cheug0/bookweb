@@ -2,6 +2,8 @@ package main
 
 import (
 	"bookweb/config"
+	"bookweb/plugin"
+	"bookweb/plugin/langtail"
 	"bookweb/router"
 	"bookweb/service"
 	"bookweb/utils"
@@ -46,6 +48,13 @@ func main() {
 	}
 
 	fmt.Println("Router configuration loaded successfully")
+
+	// 初始化插件系统
+	pluginManager := plugin.GetManager()
+	pluginManager.Register(langtail.New())
+	if err := pluginManager.InitAll("config/plugins.conf"); err != nil {
+		log.Printf("Warning: Failed to init plugins: %v", err)
+	}
 
 	// 初始化动态路由管理器
 	rm := router.NewRouterManager(routerCfg)

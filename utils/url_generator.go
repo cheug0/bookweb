@@ -35,3 +35,25 @@ func ReadUrl(articleID, chapterID int) string {
 	url = strings.Replace(url, ":cid", strconv.Itoa(chapterID), 1)
 	return url
 }
+
+// GetSiteName 获取网站名称
+func GetSiteName() string {
+	cfg := config.GetGlobalConfig()
+	if cfg != nil && cfg.Site.SiteName != "" {
+		return cfg.Site.SiteName
+	}
+	return "小说网站"
+}
+
+// LangtailUrl 根据插件配置生成长尾词页面 URL
+func LangtailUrl(langID int) string {
+	// 从插件配置获取路由模式
+	pluginCfg := config.GetPluginConfig("langtail")
+	pattern := "/langtail/:lid" // 默认模式
+	if pluginCfg != nil {
+		if routePattern, ok := pluginCfg["route_pattern"].(string); ok && routePattern != "" {
+			pattern = routePattern
+		}
+	}
+	return strings.Replace(pattern, ":lid", strconv.Itoa(langID), 1)
+}

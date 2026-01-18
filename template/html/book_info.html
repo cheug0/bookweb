@@ -17,8 +17,14 @@
                         class="s_gray">{{formatDate .Article.LastUpdate}}</em></div>
 
                 <p>相关推荐：
+                    {{if .Langtails}}
+                    {{range .Langtails}}
+                    <a href="{{langtailUrl .LangID}}">{{.LangName}}</a>&nbsp;
+                    {{end}}
+                    {{else}}
                     <a href="javascript:;">{{.Article.ArticleName}}免费阅读</a>&nbsp;
                     <a href="javascript:;">{{.Article.ArticleName}}全本在线观看</a>&nbsp;
+                    {{end}}
                 </p>
 
                 <div class="flex">

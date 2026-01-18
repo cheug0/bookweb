@@ -4,64 +4,33 @@ import (
 	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/model"
+	"bookweb/plugin"
 	"bookweb/utils"
-	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
-	"time"
 )
 
-// bookFuncMap 书籍页面的模版函数
-var bookFuncMap = template.FuncMap{
-	"formatSize": func(size int) string {
-		if size >= 10000 {
-			return fmt.Sprintf("%.1f万", float64(size)/10000.0)
-		}
-		return fmt.Sprintf("%d", size)
-	},
-	"formatDate": func(t int64) string {
-		if t == 0 {
-			return "-"
-		}
-		return time.Unix(t, 0).Format("2006-01-02")
-	},
-	"safe": func(s string) template.HTML {
-		return template.HTML(s)
-	},
-	"cover": func(id int) string {
-		return utils.GetCoverPath(id)
-	},
-	"bookUrl": func(id int) string {
-		return utils.BookUrl(id)
-	},
-	"readUrl": func(aid, cid int) string {
-		return utils.ReadUrl(aid, cid)
-	},
+// LangtailUpdateFunc 长尾词更新回调函数（由插件设置）
+var LangtailUpdateFunc func(sourceID int, sourceName string, cycleDays int)
+
+// BookInfoData 书籍信息页面数据结构
+type BookInfoData struct {
+	Article        *model.Article
+	SortName       string
+	Chapters       []*model.Chapter
+	LatestChapters []*model.Chapter
+	LatestArticles []*model.Article
+	HotArticles    []*model.Article
+	Langtails      []*model.Langtail
 }
 
-// BookInfo 小说信息页面
-func BookInfo(w http.ResponseWriter, r *http.Request) {
-	// 获取并校验参数
-	articleID, ok := GetIDOr404(w, r, "aid")
-	if !ok {
-		return
-	}
-
+// GetBookInfoData 获取书籍信息页面数据（供插件复用）
+func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
 	// 1. 获取小说基本信息（带缓存）
 	article, err := dao.GetArticleByIDCached(articleID)
 	if err != nil {
-		NotFound(w, r)
-		return
-	}
-
-	// 增加点击量（排除爬虫）
-	userAgent := r.UserAgent()
-	if !utils.IsBot(userAgent) {
-		// 异步更新点击量，避免阻塞页面加载
-		go func() {
-			dao.IncArticleVisit(articleID)
-		}()
+		return nil, err
 	}
 
 	// 2. 获取分类名称
@@ -92,28 +61,74 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 	latestArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "postdate", 10)
 	hotArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "allvisit", 10)
 
+	// 4. 获取长尾词列表（如果插件启用）
+	var langtails []*model.Langtail
+	if plugin.GetManager().IsEnabled("langtail") {
+		langtails, _ = dao.GetLangtailsBySourceID(articleID)
+		// 如果没有长尾词或数据较少，异步抓取
+		if len(langtails) < 3 && LangtailUpdateFunc != nil {
+			go func(aid int, name string) {
+				LangtailUpdateFunc(aid, name, 7)
+			}(articleID, articleName)
+		}
+	}
+
+	return &BookInfoData{
+		Article:        article,
+		SortName:       sortName,
+		Chapters:       chapters,
+		LatestChapters: latestChapters,
+		LatestArticles: latestArticles,
+		HotArticles:    hotArticles,
+		Langtails:      langtails,
+	}, nil
+}
+
+// BookInfo 小说信息页面
+func BookInfo(w http.ResponseWriter, r *http.Request) {
+	// 获取并校验参数
+	articleID, ok := GetIDOr404(w, r, "aid")
+	if !ok {
+		return
+	}
+
+	// 获取书籍数据
+	bookData, err := GetBookInfoData(articleID, "")
+	if err != nil {
+		NotFound(w, r)
+		return
+	}
+
+	// 增加点击量（排除爬虫）
+	userAgent := r.UserAgent()
+	if !utils.IsBot(userAgent) {
+		go func() {
+			dao.IncArticleVisit(articleID)
+		}()
+	}
+
 	// 准备模版数据
-	// 应用标签化 SEO
 	tags := map[string]string{
-		"articlename": article.ArticleName,
-		"author":      article.Author,
-		"sortname":    sortName,
+		"articlename": bookData.Article.ArticleName,
+		"author":      bookData.Article.Author,
+		"sortname":    bookData.SortName,
 	}
 	data := GetCommonData(r).
 		ApplySeo("book_info", tags).
-		Add("Article", article).
-		Add("SortName", sortName).
-		Add("Chapters", chapters).
-		Add("LatestChapters", latestChapters).
-		Add("ChapterCount", len(chapters)).
-		Add("LatestArticles", latestArticles).
-		Add("HotArticles", hotArticles)
+		Add("Article", bookData.Article).
+		Add("SortName", bookData.SortName).
+		Add("Chapters", bookData.Chapters).
+		Add("LatestChapters", bookData.LatestChapters).
+		Add("ChapterCount", len(bookData.Chapters)).
+		Add("LatestArticles", bookData.LatestArticles).
+		Add("HotArticles", bookData.HotArticles).
+		Add("Langtails", bookData.Langtails)
 
 	tPath, ok := GetTplPathOrError(w, "book_info.html")
 	if !ok {
 		return
 	}
-	t := template.New("book_info.html").Funcs(bookFuncMap)
+	t := template.New("book_info.html").Funcs(utils.BookFuncMap)
 	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -169,7 +184,7 @@ func ChapterRead(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	t := template.New("book_reader.html").Funcs(bookFuncMap)
+	t := template.New("book_reader.html").Funcs(utils.BookFuncMap)
 	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -214,7 +229,7 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	t := template.New("book_list.html").Funcs(bookFuncMap)
+	t := template.New("book_list.html").Funcs(utils.BookFuncMap)
 	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

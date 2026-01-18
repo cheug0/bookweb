@@ -270,3 +270,18 @@ func SaveRouterConfig(configPath string) error {
 	}
 	return os.WriteFile(configPath, data, 0644)
 }
+
+// GetPluginConfig 获取指定插件的配置
+func GetPluginConfig(pluginName string) map[string]interface{} {
+	file, err := os.Open("config/plugins.conf")
+	if err != nil {
+		return nil
+	}
+	defer file.Close()
+
+	var configs map[string]map[string]interface{}
+	if err := json.NewDecoder(file).Decode(&configs); err != nil {
+		return nil
+	}
+	return configs[pluginName]
+}

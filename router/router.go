@@ -5,6 +5,7 @@ import (
 	"bookweb/config"
 	"bookweb/controller"
 	"bookweb/model"
+	"bookweb/plugin"
 	"bookweb/utils"
 	"context"
 	"html/template"
@@ -110,6 +111,11 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 	router.POST(adminPath+"/modules/sorts", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleSortsUpdate)))
 	router.POST(adminPath+"/modules/seo", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleSeoUpdate)))
 
+	// 插件管理路由
+	router.GET(adminPath+"/plugins", adaptHandlerFunc(admin.AuthMiddleware(admin.Plugins)))
+	router.POST(adminPath+"/plugins/toggle", adaptHandlerFunc(admin.AuthMiddleware(admin.PluginToggle)))
+	router.POST(adminPath+"/plugins/config", adaptHandlerFunc(admin.AuthMiddleware(admin.PluginConfigUpdate)))
+
 	// 遍历配置并分类注册
 	for name, pattern := range cfg.Routes {
 		handler := getHandler(name)
@@ -133,6 +139,17 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 				router.Handle(method, pattern, adaptHandler(handler))
 			}
 		}
+	}
+
+	// 注册插件路由
+	pluginRoutes := plugin.GetManager().GetAllRoutes()
+	for pattern, handler := range pluginRoutes {
+		if isComplexPattern(pattern) {
+			addComplexRoute(pattern, handler, []string{"GET"})
+		} else {
+			router.GET(pattern, adaptHandler(handler))
+		}
+		log.Printf("Plugin route registered: %s", pattern)
 	}
 
 	// 设置 NotFound 拦截器来处理复杂正则路由
