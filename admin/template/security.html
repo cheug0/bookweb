@@ -1,44 +1,64 @@
 {{define "content"}}
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-title">修改密码</div>
-            <form id="passwordForm">
-                <div class="form-group">
-                    <label>原密码</label>
-                    <input type="password" name="old_password" class="form-input" required placeholder="请输入当前使用的密码">
-                </div>
-                <div class="form-group">
-                    <label>新密码</label>
-                    <input type="password" name="new_password" class="form-input" required placeholder="请输入新密码">
-                </div>
-                <div class="form-group">
-                    <label>确认新密码</label>
-                    <input type="password" name="confirm_password" class="form-input" required placeholder="请再次输入新密码">
-                </div>
-                <button type="submit" class="btn btn-primary">修改密码</button>
-            </form>
-        </div>
-    </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-title">后台入口设置</div>
-            <form id="pathForm">
-                <div class="form-group">
-                    <label>自定义后台路径</label>
+<div class="settings-container">
+    <div class="settings-header">密码安全</div>
+    <form id="passwordForm">
+        <div class="form-row">
+            <label class="form-label">原密码</label>
+            <div class="form-content">
+                <div class="form-control-wrapper">
+                    <input type="password" name="old_password" class="form-control" required placeholder="请输入当前使用的密码">
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label">新密码</label>
+            <div class="form-content">
+                <div class="form-control-wrapper">
+                    <input type="password" name="new_password" class="form-control" required placeholder="请输入新密码">
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label">确认新密码</label>
+            <div class="form-content">
+                <div class="form-control-wrapper">
+                    <input type="password" name="confirm_password" class="form-control" required placeholder="请再次输入新密码">
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label"></label>
+            <div class="form-content">
+                <button type="submit" class="btn btn-primary">修改密码</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="settings-header" style="margin-top: 40px;">后台安全</div>
+    <form id="pathForm">
+        <div class="form-row">
+            <label class="form-label">后台入口</label>
+            <div class="form-content">
+                <div class="form-control-wrapper">
                     <div style="display: flex; align-items: center;">
-                        <span style="margin-right: 10px; color: #666;">{{.Domain}}</span>
-                        <input type="text" name="admin_path" class="form-input" value="{{.AdminPath}}" required
+                        <span style="margin-right: 10px; color: #666; font-size: 14px;">{{.Domain}}</span>
+                        <input type="text" name="admin_path" class="form-control" value="{{.AdminPath}}" required
                             pattern="^/[a-zA-Z0-9_-]+$" placeholder="/admin">
                     </div>
-                    <small style="color: #999; display: block; margin-top: 5px;">必须以 / 开头，只能包含字母、数字、下划线和连字符。</small>
                 </div>
-                <button type="submit" class="btn btn-danger">保存并修改入口</button>
-            </form>
+                <span class="form-help">修改后需使用新地址登录。必须以 / 开头，仅限字母数字下划线。</span>
+            </div>
         </div>
-    </div>
+        <div class="form-row">
+            <label class="form-label"></label>
+            <div class="form-content">
+                <button type="submit" class="btn btn-danger">保存并修改入口</button>
+            </div>
+        </div>
+    </form>
 </div>
+
 
 <script>
     document.getElementById('passwordForm').addEventListener('submit', async function (e) {

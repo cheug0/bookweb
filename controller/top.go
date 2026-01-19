@@ -3,7 +3,6 @@ package controller
 import (
 	"bookweb/service"
 	"bookweb/utils"
-	"html/template"
 	"log"
 	"net/http"
 )
@@ -22,28 +21,9 @@ func Top(w http.ResponseWriter, r *http.Request) {
 
 	data.Add("Top", topData)
 
-	// 定义模版函数
-	funcMap := template.FuncMap{
-		"plus": func(a, b int) int { return a + b },
-		"cover": func(id int) string {
-			return utils.GetCoverPath(id)
-		},
-		"bookUrl": func(id int) string {
-			return utils.BookUrl(id)
-		},
-		"readUrl": func(aid, cid int) string {
-			return utils.ReadUrl(aid, cid)
-		},
-	}
-
-	tPath, ok := GetTplPathOrError(w, "top.html")
-	if !ok {
-		return
-	}
-	t := template.New("top.html").Funcs(funcMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	t := utils.GetTemplate("top.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
 	err = t.Execute(w, data)

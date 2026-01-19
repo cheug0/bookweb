@@ -1,10 +1,16 @@
 package utils
 
 import (
+	"bookweb/plugin/ads"
 	"fmt"
 	"html/template"
 	"time"
 )
+
+// GetAdContent 获取广告内容
+func GetAdContent(slotID string) template.HTML {
+	return ads.GetAdContent(slotID)
+}
 
 // BookFuncMap 书籍页面的模版函数（共享给插件使用）
 var BookFuncMap = template.FuncMap{
@@ -34,5 +40,8 @@ var BookFuncMap = template.FuncMap{
 	},
 	"langtailUrl": func(lid int) string {
 		return LangtailUrl(lid)
+	},
+	"ad": func(slotID string) template.HTML {
+		return GetAdContent(slotID)
 	},
 }

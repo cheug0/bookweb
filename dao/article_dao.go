@@ -3,7 +3,9 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // GetArticleByID 根据ArticleID获取小说信息
@@ -19,8 +21,10 @@ func GetArticleByID(id int) (*model.Article, error) {
 }
 
 // GetChaptersByArticleID 根据ArticleID获取章节列表(不含内容)
+// GetChaptersByArticleID 根据ArticleID获取章节列表(不含内容)
 func GetChaptersByArticleID(articleID int) ([]*model.Chapter, error) {
-	sqlStr := "select chapterid, siteid, articleid, articlename, volumeid, posterid, poster, postdate, lastupdate, chaptername, chapterorder, size, saleprice, salenum, totalcost, isvip, chaptertype, power, display from jieqi_article_chapter where articleid = ? order by chapterorder asc"
+	// 优化：只查询列表需要的字段，减少IO和内存消耗 (从19个字段减少到6个)
+	sqlStr := "select chapterid, chaptername, chapterorder, isvip, size, lastupdate from jieqi_article_chapter where articleid = ? order by chapterorder asc"
 	rows, err := utils.Db.Query(sqlStr, articleID)
 	if err != nil {
 		return nil, err
@@ -30,9 +34,8 @@ func GetChaptersByArticleID(articleID int) ([]*model.Chapter, error) {
 	var chapters []*model.Chapter
 	for rows.Next() {
 		ch := &model.Chapter{}
-		// 注意：这里scan的字段必须和select语句中的字段一一对应且顺序一致
-		// 这里的select语句没有包含 attachment 字段，因为获取列表通常不需要内容
-		err := rows.Scan(&ch.ChapterID, &ch.SiteID, &ch.ArticleID, &ch.ArticleName, &ch.VolumeID, &ch.PosterID, &ch.Poster, &ch.PostDate, &ch.LastUpdate, &ch.ChapterName, &ch.ChapterOrder, &ch.Size, &ch.SalePrice, &ch.SaleNum, &ch.TotalCost, &ch.IsVIP, &ch.ChapterType, &ch.Power, &ch.Display)
+		// 必须与 SQL 字段顺序一致
+		err := rows.Scan(&ch.ChapterID, &ch.ChapterName, &ch.ChapterOrder, &ch.IsVIP, &ch.Size, &ch.LastUpdate)
 		if err != nil {
 			return nil, err
 		}
@@ -72,6 +75,32 @@ func GetArticlesBySortID(sortID int, offset, limit int) ([]*model.Article, error
 	return articles, nil
 }
 
+// GetArticlesBySortIDCached 带缓存分页获取指定分类的小说列表
+func GetArticlesBySortIDCached(sortID int, offset, limit int) ([]*model.Article, error) {
+	cacheKey := fmt.Sprintf("articles_sort_%d_%d_%d", sortID, offset, limit)
+
+	// 尝试从缓存获取
+	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+		var articles []*model.Article
+		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
+			return articles, nil
+		}
+	}
+
+	// 从数据库获取
+	articles, err := GetArticlesBySortID(sortID, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// 写入缓存（5分钟过期）
+	if data, err := json.Marshal(articles); err == nil {
+		utils.CacheSet(cacheKey, string(data), 5*time.Minute)
+	}
+
+	return articles, nil
+}
+
 // GetArticleCountBySortID 获取指定分类的小说总数
 func GetArticleCountBySortID(sortID int) (int, error) {
 	sqlStr := "select count(*) from jieqi_article_article"
@@ -107,6 +136,95 @@ func GetVisitArticles(limit int) ([]*model.Article, error) {
 	return articles, nil
 }
 
+// GetVisitArticlesCached 带缓存获取按点击量排序的小说列表
+func GetVisitArticlesCached(limit int) ([]*model.Article, error) {
+	cacheKey := fmt.Sprintf("visit_articles_%d", limit)
+
+	// 尝试从缓存获取
+	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+		var articles []*model.Article
+		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
+			return articles, nil
+		}
+	}
+
+	// 从数据库获取
+	articles, err := GetVisitArticles(limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// 写入缓存（5分钟过期）
+	if data, err := json.Marshal(articles); err == nil {
+		utils.CacheSet(cacheKey, string(data), 5*time.Minute)
+	}
+
+	return articles, nil
+}
+
+// GetArticlesBySortAndOrder 获取分类小说列表 (按指定字段排序)
+func GetArticlesBySortAndOrder(sortID int, orderBy string, limit int) ([]*model.Article, error) {
+	// 简单的白名单校验
+	validFields := map[string]bool{
+		"allvisit":   true,
+		"monthvisit": true,
+		"weekvisit":  true,
+		"dayvisit":   true,
+		"allvote":    true,
+		"size":       true,
+		"lastupdate": true,
+		"postdate":   true,
+	}
+	if !validFields[orderBy] {
+		orderBy = "allvisit"
+	}
+
+	sqlStr := fmt.Sprintf("select articleid, articlename, author, sortid, intro, size, lastupdate, postdate, allvisit, monthvisit, weekvisit, dayvisit from jieqi_article_article where sortid = ? and display = 0 order by %s desc limit ?", orderBy)
+
+	rows, err := utils.Db.Query(sqlStr, sortID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []*model.Article
+	for rows.Next() {
+		a := &model.Article{}
+		err := rows.Scan(&a.ArticleID, &a.ArticleName, &a.Author, &a.SortID, &a.Intro, &a.Size, &a.LastUpdate, &a.PostDate, &a.AllVisit, &a.MonthVisit, &a.WeekVisit, &a.DayVisit)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, a)
+	}
+	return articles, nil
+}
+
+// GetArticlesBySortAndOrderCached 带缓存获取分类小说列表
+func GetArticlesBySortAndOrderCached(sortID int, order string, limit int) ([]*model.Article, error) {
+	cacheKey := fmt.Sprintf("articles_sort_%d_%s_%d", sortID, order, limit)
+
+	// 尝试从缓存获取
+	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+		var articles []*model.Article
+		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
+			return articles, nil
+		}
+	}
+
+	// 从数据库获取
+	articles, err := GetArticlesBySortAndOrder(sortID, order, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// 写入缓存（10分钟过期）
+	if data, err := json.Marshal(articles); err == nil {
+		utils.CacheSet(cacheKey, string(data), 10*time.Minute)
+	}
+
+	return articles, nil
+}
+
 // GetRankArticles 获取按指定字段排序的小说列表
 func GetRankArticles(orderBy string, limit int) ([]*model.Article, error) {
 	// 简单的白名单校验
@@ -129,47 +247,6 @@ func GetRankArticles(orderBy string, limit int) ([]*model.Article, error) {
 
 	sqlStr := "select articleid, articlename, author, intro, size, lastupdate, sortid, fullflag, imgflag, lastchapterid, lastchapter from jieqi_article_article order by " + orderBy + " desc limit ?"
 	rows, err := utils.Db.Query(sqlStr, limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var articles []*model.Article
-	for rows.Next() {
-		art := &model.Article{}
-		err := rows.Scan(&art.ArticleID, &art.ArticleName, &art.Author, &art.Intro, &art.Size, &art.LastUpdate, &art.SortID, &art.FullFlag, &art.ImgFlag, &art.LastChapterID, &art.LastChapter)
-		if err != nil {
-			return nil, err
-		}
-		articles = append(articles, art)
-	}
-	return articles, nil
-}
-
-// GetArticlesBySortAndOrder 获取指定分类下按指定字段排序的小说列表
-// 如果 sortID 为 0，则获取全部分类，orderBy 为排序字段，limit 为返回数量
-// orderBy 可选值：allvisit-总点击量，postdate-发布时间
-func GetArticlesBySortAndOrder(sortID int, orderBy string, limit int) ([]*model.Article, error) {
-	// 简单的白名单校验
-	validFields := map[string]bool{
-		"allvisit":   true,
-		"monthvisit": true,
-		"weekvisit":  true,
-		"dayvisit":   true,
-		"allvote":    true,
-		"monthvote":  true,
-		"weekvote":   true,
-		"dayvote":    true,
-		"size":       true,
-		"lastupdate": true,
-		"postdate":   true,
-	}
-	if !validFields[orderBy] {
-		orderBy = "allvisit"
-	}
-
-	sqlStr := "select articleid, articlename, author, intro, size, lastupdate, sortid, fullflag, imgflag, lastchapterid, lastchapter from jieqi_article_article where sortid = ? order by " + orderBy + " desc limit ?"
-	rows, err := utils.Db.Query(sqlStr, sortID, limit)
 	if err != nil {
 		return nil, err
 	}

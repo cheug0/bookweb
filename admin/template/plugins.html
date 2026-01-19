@@ -7,7 +7,7 @@
 </div>
 
 <div id="plugin-list" class="tab-content active">
-    <div class="card">
+    <div class="settings-container">
         <div class="alert alert-info">
             <strong><i class="fa fa-info-circle"></i> 插件管理说明：</strong>
             <ul style="margin: 5px 0 0 20px; font-size: 13px; color: #555;">
@@ -38,29 +38,21 @@
                             {{end}}
                         </td>
                         <td style="color: #666; font-size: 13px;">
-                            {{if eq $name "langtail"}}
-                            长尾关键词插件 - 自动从百度获取搜索建议词优化SEO
-                            {{else}}
-                            -
-                            {{end}}
+                            {{if eq $name "langtail"}}长尾关键词插件 - 自动抓取搜索建议词优化SEO{{end}}
+                            {{if eq $name "ads"}}广告管理插件 - 自定义广告位，模板标签调用{{end}}
                         </td>
                         <td>
                             {{if index $cfg "enabled"}}
-                            <button class="btn btn-warning btn-sm" onclick="togglePlugin('{{$name}}', false)">
-                                禁用
-                            </button>
+                            <button class="btn btn-warning btn-sm"
+                                onclick="togglePlugin('{{$name}}', false)">禁用</button>
                             {{else}}
-                            <button class="btn btn-success btn-sm" onclick="togglePlugin('{{$name}}', true)">
-                                启用
-                            </button>
+                            <button class="btn btn-success btn-sm" onclick="togglePlugin('{{$name}}', true)">启用</button>
                             {{end}}
                         </td>
                     </tr>
                     {{else}}
                     <tr>
-                        <td colspan="4" style="text-align: center; color: #999; padding: 40px;">
-                            暂无已安装的插件
-                        </td>
+                        <td colspan="4" style="text-align: center; color: #999; padding: 40px;">暂无已安装的插件</td>
                     </tr>
                     {{end}}
                 </tbody>
@@ -71,31 +63,107 @@
 
 {{range $name, $cfg := .Plugins}}
 <div id="plugin-{{$name}}" class="tab-content">
-    <div class="card">
+    <div class="settings-container">
+        {{if eq $name "ads"}}
+        <!-- 广告插件配置界面 -->
+        <form id="form-{{$name}}" onsubmit="saveAdsConfig(event)">
+            <div class="alert alert-info" style="margin-bottom: 20px;">
+                <strong><i class="fa fa-bullhorn"></i> 广告位管理</strong>
+                <span style="font-size: 13px; margin-left: 10px;">在模板中使用 <code>{{"{{"}}ad "广告位ID"{{"}}"}}</code>
+                    调用</span>
+            </div>
+
+            <!-- 新增广告位 -->
+            <div
+                style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px dashed #4caf50;">
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">广告位ID
+                            (英文)</label>
+                        <input type="text" id="new-slot-id" class="form-control" placeholder="如: sidebar_top"
+                            style="width: 100%; padding: 8px;">
+                    </div>
+                    <div style="flex: 2; min-width: 200px;">
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">广告位名称</label>
+                        <input type="text" id="new-slot-name" class="form-control" placeholder="如: 侧边栏顶部广告"
+                            style="width: 100%; padding: 8px;">
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="addNewSlot()" style="padding: 8px 20px;">
+                        <i class="fa fa-plus"></i> 新增广告位
+                    </button>
+                </div>
+            </div>
+
+            <!-- 广告位列表 -->
+            <div id="ad-slots-container"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
+                {{if index $cfg "slots"}}
+                {{range $slotId, $slot := index $cfg "slots"}}
+                <div class="ad-slot-item" data-slot-id="{{$slotId}}"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">
+                        <div>
+                            <strong style="font-size: 15px; color: #d32f2f;">{{$slotId}}</strong>
+                            <code
+                                style="font-size: 11px; margin-left: 8px; color: #666;">{{"{{"}}ad "{{$slotId}}"{{"}}"}}</code>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                                <input type="checkbox" class="slot-enabled" {{if index $slot "enabled" }}checked{{end}}>
+                                启用
+                            </label>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteSlot('{{$slotId}}')"
+                                style="padding: 2px 8px;">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">广告位名称</label>
+                        <input type="text" class="form-control slot-name" value='{{index $slot "name"}}'
+                            style="width: 100%; padding: 8px; box-sizing: border-box;">
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">HTML 内容</label>
+                        <textarea class="form-control slot-content"
+                            style="width: 100%; height: 100px; padding: 8px; box-sizing: border-box; font-family: monospace; font-size: 12px;">{{index $slot "content"}}</textarea>
+                    </div>
+                </div>
+                {{end}}
+                {{else}}
+                <div id="no-slots-msg"
+                    style="grid-column: 1/-1; text-align: center; color: #999; padding: 40px; background: #f5f5f5; border-radius: 5px;">
+                    暂无广告位，请点击上方"新增广告位"按钮创建
+                </div>
+                {{end}}
+            </div>
+
+            <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn btn-primary"
+                    style="padding: 10px 50px; font-size: 16px;">保存广告配置</button>
+            </div>
+        </form>
+        {{else}}
+        <!-- 通用插件配置界面 -->
         <form id="form-{{$name}}" onsubmit="savePluginConfig(event, '{{$name}}')">
             <div class="alert alert-info" style="margin-bottom: 20px;">
                 <strong><i class="fa fa-cog"></i> {{$name}} 插件配置</strong>
-                <span style="font-size: 13px; color: #555; margin-left: 10px;">
-                    {{if index $cfg "enabled"}}
-                    <span class="badge badge-success">已启用</span>
-                    {{else}}
-                    <span class="badge badge-secondary">已禁用</span>
-                    {{end}}
+                <span style="font-size: 13px; margin-left: 10px;">
+                    {{if index $cfg "enabled"}}<span class="badge badge-success">已启用</span>{{else}}<span
+                        class="badge badge-secondary">已禁用</span>{{end}}
                 </span>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
                 {{range $key, $value := $cfg}}
-                {{if ne $key "enabled"}}
+                {{if and (ne $key "enabled") (ne $key "slots")}}
                 <div class="config-item"
                     style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <label style="font-weight: bold; font-size: 14px; color: #333;">{{$key}}</label>
-                        <span style="font-size: 12px; color: #999;">
-                            {{if eq $key "fetch_cycle_days"}}抓取周期(天){{end}}
-                            {{if eq $key "cache_seconds"}}缓存时间(秒){{end}}
-                            {{if eq $key "route_pattern"}}URL路由模式{{end}}
-                        </span>
                     </div>
                     <input type="text" class="form-control config-input" data-key="{{$key}}" value="{{$value}}"
                         style="width: 100%; padding: 10px; box-sizing: border-box;">
@@ -105,73 +173,27 @@
             </div>
 
             <div class="form-actions" style="margin-top: 30px; text-align: center;">
-                <button type="submit" class="btn btn-primary" style="padding: 10px 50px; font-size: 16px;">
-                    保存配置
-                </button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 50px; font-size: 16px;">保存配置</button>
             </div>
         </form>
+        {{end}}
     </div>
 </div>
 {{end}}
 
-<style>
-    .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-    }
 
-    .badge-success {
-        background-color: #4caf50;
-        color: white;
-    }
-
-    .badge-secondary {
-        background-color: #9e9e9e;
-        color: white;
-    }
-
-    .btn-sm {
-        padding: 4px 12px;
-        font-size: 12px;
-    }
-
-    .btn-warning {
-        background-color: #ff9800;
-        color: white;
-    }
-
-    .btn-warning:hover {
-        background-color: #f57c00;
-    }
-
-    .btn-success {
-        background-color: #4caf50;
-        color: white;
-    }
-
-    .btn-success:hover {
-        background-color: #388e3c;
-    }
-</style>
 
 <script>
     function switchTab(btn, tabId) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
         btn.classList.add('active');
         document.getElementById(tabId).classList.add('active');
     }
 
-    // 切换插件状态
     async function togglePlugin(name, enabled) {
         const action = enabled ? '启用' : '禁用';
-        if (!confirm(`确定要${action}插件 "${name}" 吗？`)) {
-            return;
-        }
+        if (!confirm(`确定要${action}插件 "${name}" 吗？`)) return;
 
         try {
             const res = await fetch('{{.AdminPath}}/plugins/toggle', {
@@ -191,7 +213,6 @@
         }
     }
 
-    // 保存插件配置
     async function savePluginConfig(e, name) {
         e.preventDefault();
         const form = document.getElementById(`form-${name}`);
@@ -201,15 +222,9 @@
         inputs.forEach(input => {
             const key = input.dataset.key;
             let value = input.value;
-
-            // 尝试转换数字
-            if (!isNaN(value) && value !== '') {
-                value = parseFloat(value);
-            }
-            // 处理布尔值
+            if (!isNaN(value) && value !== '') value = parseFloat(value);
             if (value === 'true') value = true;
             if (value === 'false') value = false;
-
             config[key] = value;
         });
 
@@ -222,6 +237,105 @@
             const data = await res.json();
             if (data.success) {
                 alert('配置保存成功');
+                location.reload();
+            } else {
+                alert('保存失败: ' + data.message);
+            }
+        } catch (err) {
+            alert('网络错误');
+        }
+    }
+
+    function addNewSlot() {
+        const slotId = document.getElementById('new-slot-id').value.trim();
+        const slotName = document.getElementById('new-slot-name').value.trim();
+
+        if (!slotId) {
+            alert('请输入广告位ID');
+            return;
+        }
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(slotId)) {
+            alert('广告位ID只能包含英文字母、数字和下划线，且必须以字母开头');
+            return;
+        }
+        if (document.querySelector(`.ad-slot-item[data-slot-id="${slotId}"]`)) {
+            alert('该广告位ID已存在');
+            return;
+        }
+
+        // 隐藏空提示
+        const noSlotsMsg = document.getElementById('no-slots-msg');
+        if (noSlotsMsg) noSlotsMsg.remove();
+
+        // 添加新广告位DOM
+        const container = document.getElementById('ad-slots-container');
+        const html = `
+        <div class="ad-slot-item" data-slot-id="${slotId}" style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">
+                <div>
+                    <strong style="font-size: 15px; color: #d32f2f;">${slotId}</strong>
+                    <code style="font-size: 11px; margin-left: 8px; color: #666;">{{"{{ad \"${slotId}\"}}"}}&#125;&#125;</code>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                        <input type="checkbox" class="slot-enabled" checked> 启用
+                    </label>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteSlot('${slotId}')" style="padding: 2px 8px;">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">广告位名称</label>
+                <input type="text" class="form-control slot-name" value="${slotName}" style="width: 100%; padding: 8px; box-sizing: border-box;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">HTML 内容</label>
+                <textarea class="form-control slot-content" style="width: 100%; height: 100px; padding: 8px; box-sizing: border-box; font-family: monospace; font-size: 12px;"></textarea>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+
+        // 清空输入
+        document.getElementById('new-slot-id').value = '';
+        document.getElementById('new-slot-name').value = '';
+    }
+
+    function deleteSlot(slotId) {
+        if (!confirm(`确定要删除广告位 "${slotId}" 吗？`)) return;
+        const item = document.querySelector(`.ad-slot-item[data-slot-id="${slotId}"]`);
+        if (item) item.remove();
+
+        // 如果没有广告位了，显示提示
+        if (!document.querySelector('.ad-slot-item')) {
+            const container = document.getElementById('ad-slots-container');
+            container.innerHTML = `<div id="no-slots-msg" style="grid-column: 1/-1; text-align: center; color: #999; padding: 40px; background: #f5f5f5; border-radius: 5px;">
+                暂无广告位，请点击上方"新增广告位"按钮创建
+            </div>`;
+        }
+    }
+
+    async function saveAdsConfig(e) {
+        e.preventDefault();
+        const slots = {};
+        document.querySelectorAll('.ad-slot-item').forEach(item => {
+            const slotId = item.dataset.slotId;
+            slots[slotId] = {
+                name: item.querySelector('.slot-name').value,
+                content: item.querySelector('.slot-content').value,
+                enabled: item.querySelector('.slot-enabled').checked
+            };
+        });
+
+        try {
+            const res = await fetch('{{.AdminPath}}/plugins/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'ads', config: { slots: slots } })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('广告配置保存成功');
                 location.reload();
             } else {
                 alert('保存失败: ' + data.message);

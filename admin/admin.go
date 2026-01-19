@@ -90,6 +90,38 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, adminPath, http.StatusFound)
 }
 
+// ClearCache 清理 Redis 缓存
+func ClearCache(w http.ResponseWriter, r *http.Request) {
+	_, ok := IsAdminLoggedIn(r)
+	if !ok {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "未登录"})
+		return
+	}
+
+	if err := utils.CacheFlush(); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "清理失败: " + err.Error()})
+		return
+	}
+
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "Redis 缓存已清空"})
+}
+
+// ClearTemplates 清理模板缓存 (重新加载)
+func ClearTemplates(w http.ResponseWriter, r *http.Request) {
+	_, ok := IsAdminLoggedIn(r)
+	if !ok {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "未登录"})
+		return
+	}
+
+	if err := utils.InitTemplates(); err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": "重载失败: " + err.Error()})
+		return
+	}
+
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "模板缓存已重载"})
+}
+
 // Logout 后台注销
 func Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(AdminSessionCookieName)
@@ -135,6 +167,13 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			if limit, err := strconv.Atoi(r.FormValue("search_limit")); err == nil {
 				cfg.Site.SearchLimit = limit
 			}
+			cfg.Site.IndexCache = r.FormValue("index_cache") == "on"
+			cfg.Site.BookCache = r.FormValue("book_cache") == "on"
+			cfg.Site.BookIndexCache = r.FormValue("book_index_cache") == "on"
+			cfg.Site.ReadCache = r.FormValue("read_cache") == "on"
+			cfg.Site.SortCache = r.FormValue("sort_cache") == "on"
+			cfg.Site.TopCache = r.FormValue("top_cache") == "on"
+			cfg.Site.GzipEnabled = r.FormValue("gzip_enabled") == "on"
 			cfg.Storage.Type = r.FormValue("storage_type")
 
 			// 保存本地存储配置

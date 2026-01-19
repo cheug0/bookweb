@@ -4,7 +4,6 @@ import (
 	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/utils"
-	"html/template"
 	"net/http"
 	"strconv"
 	"time"
@@ -82,39 +81,10 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		Add("TotalCount", totalCount).
 		Add("Pages", generatePageList(currentPage, totalPage))
 
-	// 6. 定义模版函数 (复用 sort.go 的逻辑)
-	funcMap := template.FuncMap{
-		"plus":  func(a, b int) int { return a + b },
-		"minus": func(a, b int) int { return a - b },
-		"formatSize": func(size int) string {
-			if size >= 10000 {
-				return strconv.FormatFloat(float64(size)/10000.0, 'f', 1, 64) + "万"
-			}
-			return strconv.Itoa(size)
-		},
-		"formatDate": func(t int64) string {
-			return utils.FormatDate(t, "2006-01-02")
-		},
-		"cover": func(id int) string {
-			return utils.GetCoverPath(id)
-		},
-		"bookUrl": func(id int) string {
-			return utils.BookUrl(id)
-		},
-		"readUrl": func(aid, cid int) string {
-			return utils.ReadUrl(aid, cid)
-		},
-	}
-
-	// 7. 渲染页面
-	tPath, ok := GetTplPathOrError(w, "search.html")
-	if !ok {
-		return
-	}
-	t := template.New("search.html").Funcs(funcMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 6. 渲染页面
+	t := utils.GetTemplate("search.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
 	t.Execute(w, data)

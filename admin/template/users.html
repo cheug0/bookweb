@@ -1,6 +1,8 @@
 {{define "content"}}
-<div class="card">
-    <div class="card-title">用户列表 (共 {{.Total}} 人)</div>
+
+<div class="settings-container">
+    <div class="settings-header">用户列表 <span class="badge badge-secondary"
+            style="margin-left: 10px; font-weight: normal;">共 {{.Total}} 人</span></div>
     <div class="table-container">
         <table>
             <thead>
@@ -14,7 +16,7 @@
                 {{range .Users}}
                 <tr>
                     <td>{{.Id}}</td>
-                    <td>{{.Username}}</td>
+                    <td><strong>{{.Username}}</strong></td>
                     <td>
                         <a href="{{$.AdminPath}}/user/edit?id={{.Id}}" class="btn btn-primary btn-sm">编辑</a>
                         <a href="{{$.AdminPath}}/user/books?id={{.Id}}" class="btn btn-info btn-sm">书籍管理</a>
@@ -37,6 +39,7 @@
     </div>
     {{end}}
 </div>
+
 
 <script>
     async function deleteUser(id) {

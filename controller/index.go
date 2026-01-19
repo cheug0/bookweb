@@ -5,6 +5,7 @@ import (
 	"bookweb/dao"
 	"bookweb/model"
 	"bookweb/utils"
+	"bytes"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -46,15 +47,26 @@ type categoryBlock struct {
 	Articles []*model.Article
 }
 
+const indexCacheKey = "page_cache_index"
+
 // Index 处理首页请求
 func Index(w http.ResponseWriter, r *http.Request) {
+	// 尝试从缓存获取整页HTML (如果开启)
+	if config.GetGlobalConfig().Site.IndexCache {
+		if cached, err := utils.CacheGet(indexCacheKey); err == nil && cached != "" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write([]byte(cached))
+			return
+		}
+	}
+
 	data := GetCommonData(r).ApplySeo("index", nil)
 
-	// 1. 大神小说 (取 allvisit 前 6)
-	topArticles, _ := dao.GetVisitArticles(6)
+	// 1. 大神小说 (取 allvisit 前 6，带缓存)
+	topArticles, _ := dao.GetVisitArticlesCached(6)
 
-	// 2. 热门小说 (取 allvisit 前 12)
-	hotArticles, _ := dao.GetVisitArticles(12)
+	// 2. 热门小说 (取 allvisit 前 12，带缓存)
+	hotArticles, _ := dao.GetVisitArticlesCached(12)
 
 	// 3. 分类展示 (前 6 个分类，每个取 13 本，带缓存)
 	allSorts, _ := dao.GetAllSortsCached()
@@ -63,7 +75,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	for i, s := range allSorts {
 		sortMap[s.SortID] = s.Caption
 		if i < 6 {
-			arts, _ := dao.GetArticlesBySortID(s.SortID, 0, 13)
+			arts, _ := dao.GetArticlesBySortIDCached(s.SortID, 0, 13)
 			blocks = append(blocks, categoryBlock{
 				Sort:     s,
 				Articles: arts,
@@ -71,11 +83,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 4. 最新章节 (取 lastupdate 前 30)
-	latestUpdates, _ := dao.GetArticlesBySortID(0, 0, 30)
+	// 4. 最新更新 (取 lastupdate 前 30，带缓存)
+	latestUpdates, _ := dao.GetArticlesBySortIDCached(0, 0, 30)
 
-	// 5. 最新入库 (取 postdate 前 30)
-	newArticles, _ := dao.GetArticlesBySortID(0, 0, 30)
+	// 5. 最新入库 (复用最新更新数据，避免重复查询)
+	newArticles := latestUpdates
 
 	data.Add("TopArticles", topArticles).
 		Add("HotArticles", hotArticles).
@@ -85,15 +97,25 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Add("SortMap", sortMap).
 		Add("Links", config.GetGlobalConfig().Links)
 
-	tPath, ok := GetTplPathOrError(w, "index.html")
-	if !ok {
+	t := utils.GetTemplate("index.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
-	t := template.New("index.html").Funcs(indexFuncMap)
-	t, err := t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
+
+	// 渲染到缓冲区并缓存
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t.Execute(w, data)
+
+	html := buf.String()
+	// 缓存整页HTML（1分钟过期，如果开启）
+	if config.GetGlobalConfig().Site.IndexCache {
+		utils.CacheSet(indexCacheKey, html, 1*time.Minute)
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
 }

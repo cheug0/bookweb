@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/utils"
+	"bytes"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -54,6 +56,16 @@ func SortList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 尝试从缓存获取 (10分钟)
+	cacheKey := fmt.Sprintf("page_cache_sort_%d_%d", sortID, currentPage)
+	if config.GetGlobalConfig().Site.SortCache && utils.IsRedisEnabled() {
+		if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write([]byte(cached))
+			return
+		}
+	}
+
 	// 2. 准备基础数据
 	pageSize := 20
 	offset := (currentPage - 1) * pageSize
@@ -79,7 +91,7 @@ func SortList(w http.ResponseWriter, r *http.Request) {
 
 	caption := "全部分类"
 	if sortID > 0 {
-		currentSort, err := dao.GetSortByID(sortID)
+		currentSort, err := dao.GetSortByIDCached(sortID)
 		if err == nil {
 			caption = currentSort.Caption
 		} else {
@@ -119,15 +131,23 @@ func SortList(w http.ResponseWriter, r *http.Request) {
 		Add("Pages", generatePageList(currentPage, totalPage))
 
 	// 5. 渲染页面
-	tPath, ok := GetTplPathOrError(w, "sort.html")
-	if !ok {
+	var buf bytes.Buffer
+	t := utils.GetTemplate("sort.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
-	t := template.New("sort.html").Funcs(funcMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
+	if err := t.Execute(&buf, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t.Execute(w, data)
+
+	html := buf.String()
+	// 写入缓存 (10分钟)
+	if config.GetGlobalConfig().Site.SortCache && utils.IsRedisEnabled() {
+		utils.CacheSet(cacheKey, html, 10*time.Minute)
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
 }

@@ -35,6 +35,13 @@
             </div>
             <div class="header-title">{{.Title}}</div>
             <div class="user-profile">
+                <!-- 缓存清理按钮组 -->
+                <div class="header-actions" style="display:inline-flex; gap:10px; margin-right:20px;">
+                    <a href="javascript:;" onclick="clearCache()" title="清理 Redis 缓存" style="text-decoration:none;">🧹
+                        缓存</a>
+                    <a href="javascript:;" onclick="clearTemplates()" title="重载模版文件" style="text-decoration:none;">🔄
+                        模版</a>
+                </div>
                 <span>{{.Username}}</span>
                 <a href="{{.AdminPath}}/logout">退出</a>
             </div>
@@ -48,6 +55,22 @@
     <script>
         function toggleSidebar() {
             document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        function clearCache() {
+            if (!confirm('确定要清空所有 Redis 缓存吗？这可能会导致短暂的负载升高。')) return;
+            fetch('{{.AdminPath}}/cache/clear', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => alert(data.message))
+                .catch(err => alert('请求失败'));
+        }
+
+        function clearTemplates() {
+            if (!confirm('确定要重载所有模版文件吗？')) return;
+            fetch('{{.AdminPath}}/template/clear', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => alert(data.message))
+                .catch(err => alert('请求失败'));
         }
     </script>
 </body>

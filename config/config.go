@@ -33,12 +33,15 @@ type RouterConfig struct {
 
 // DbConfig 数据库配置结构
 type DbConfig struct {
-	Driver   string `json:"driver"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	DbName   string `json:"dbname"`
+	Driver          string `json:"driver"`
+	Host            string `json:"host"`
+	Port            int    `json:"port"`
+	User            string `json:"user"`
+	Password        string `json:"password"`
+	DbName          string `json:"dbname"`
+	MaxOpenConns    int    `json:"max_open_conns"`    // 最大打开连接数
+	MaxIdleConns    int    `json:"max_idle_conns"`    // 最大空闲连接数
+	ConnMaxLifetime int    `json:"conn_max_lifetime"` // 连接最大生命周期（秒）
 }
 
 // AppConfig 应用全局配置结构
@@ -98,11 +101,18 @@ type LinkConfig struct {
 
 // SiteConfig 站点展示与 SEO 配置结构
 type SiteConfig struct {
-	SiteName    string `json:"sitename"`
-	Domain      string `json:"domain"`
-	Template    string `json:"template"`
-	AdminPath   string `json:"admin_path"`   // 后台管理路径，默认 /admin
-	SearchLimit int    `json:"search_limit"` // 搜索限制时间（秒）
+	SiteName       string `json:"sitename"`
+	Domain         string `json:"domain"`
+	Template       string `json:"template"`
+	AdminPath      string `json:"admin_path"`       // 后台管理路径，默认 /admin
+	SearchLimit    int    `json:"search_limit"`     // 搜索限制时间（秒）
+	IndexCache     bool   `json:"index_cache"`      // 是否开启首页缓存
+	BookCache      bool   `json:"book_cache"`       // 开启小说信息页缓存
+	BookIndexCache bool   `json:"book_index_cache"` // 开启小说目录页缓存
+	ReadCache      bool   `json:"read_cache"`       // 开启章节阅读页缓存
+	SortCache      bool   `json:"sort_cache"`       // 开启分类页缓存
+	TopCache       bool   `json:"top_cache"`        // 开启排行榜缓存
+	GzipEnabled    bool   `json:"gzip_enabled"`     // 开启 GZIP 压缩
 }
 
 // SeoRule 定义单个页面的 SEO 模板

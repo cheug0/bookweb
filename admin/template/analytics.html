@@ -1,17 +1,29 @@
 {{define "content"}}
-<div class="card">
-    <div class="card-title">统计代码</div>
-    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-        在此处添加第三方统计代码（如百度统计、Google Analytics 等），代码将自动添加到网站 foot.html 模板中。
-    </p>
+
+<div class="settings-container">
+    <div class="settings-header">统计代码</div>
+    <div class="alert alert-info" style="margin-bottom: 25px; border-left: 4px solid #3498db; background: #f8f9fa;">
+        <i class="fas fa-info-circle"></i> 代码将自动注入到网站底部 (foot.html)，支持百度统计、Google Analytics 等。
+    </div>
     <form id="analyticsForm">
-        <div class="form-group">
-            <label>统计代码</label>
-            <textarea name="analytics" rows="10" placeholder="粘贴您的统计代码...">{{.Analytics}}</textarea>
+        <div class="form-row">
+            <label class="form-label">代码内容</label>
+            <div class="form-content">
+                <div class="form-control-wrapper" style="width: 100%; max-width: 600px;">
+                    <textarea name="analytics" class="form-control" style="height: 200px; font-family: monospace;"
+                        placeholder="<script>...</script>">{{.Analytics}}</textarea>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">保存</button>
+        <div class="form-row">
+            <label class="form-label"></label>
+            <div class="form-content">
+                <button type="submit" class="btn btn-primary">保存设置</button>
+            </div>
+        </div>
     </form>
 </div>
+
 
 <script>
     document.getElementById('analyticsForm').addEventListener('submit', async function (e) {

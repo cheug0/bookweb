@@ -51,8 +51,8 @@ func GetCommonData(r *http.Request) CommonData {
 		data["CurrentDesc"] = ReplaceSeoTags(rule.Description, tags)
 	}
 
-	// 动态获取导航栏链接
-	sorts, _ := dao.GetAllSorts()
+	// 动态获取导航栏链接（使用缓存）
+	sorts, _ := dao.GetAllSortsCached()
 	var sortLinks []map[string]string
 	sortRoute := config.GetRouterConfig().GetRoute("sort")
 	for _, s := range sorts {

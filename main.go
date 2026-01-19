@@ -2,7 +2,9 @@ package main
 
 import (
 	"bookweb/config"
+	"bookweb/dao"
 	"bookweb/plugin"
+	"bookweb/plugin/ads"
 	"bookweb/plugin/langtail"
 	"bookweb/router"
 	"bookweb/service"
@@ -52,8 +54,14 @@ func main() {
 	// 初始化插件系统
 	pluginManager := plugin.GetManager()
 	pluginManager.Register(langtail.New())
+	pluginManager.Register(ads.New())
 	if err := pluginManager.InitAll("config/plugins.conf"); err != nil {
 		log.Printf("Warning: Failed to init plugins: %v", err)
+	}
+
+	// 初始化模板缓存
+	if err := utils.InitTemplates(); err != nil {
+		log.Fatalf("Failed to init templates: %v", err)
 	}
 
 	// 初始化动态路由管理器
@@ -69,8 +77,35 @@ func main() {
 		}
 	})
 
+	// 缓存预热 - 预填充常用数据缓存
+	go warmupCache()
+
 	// 启动服务器
 	serverAddr := fmt.Sprintf("%s:%d", appCfg.Server.Host, appCfg.Server.Port)
 	fmt.Printf("\nServer starting on %s (Hot reload enabled)...\n", serverAddr)
-	log.Fatal(http.ListenAndServe(serverAddr, rm))
+
+	// 使用 GZIP 中间件包装路由
+	handler := utils.GzipMiddleware(rm)
+	log.Fatal(http.ListenAndServe(serverAddr, handler))
+}
+
+// warmupCache 缓存预热 - 启动时预填充常用数据
+func warmupCache() {
+	log.Println("Cache warmup starting...")
+
+	// 预热首页需要的数据
+	dao.GetAllSortsCached()
+	dao.GetVisitArticlesCached(6)
+	dao.GetVisitArticlesCached(12)
+	dao.GetArticlesBySortIDCached(0, 0, 30)
+
+	// 预热各分类数据
+	sorts, _ := dao.GetAllSortsCached()
+	for i, s := range sorts {
+		if i < 6 {
+			dao.GetArticlesBySortIDCached(s.SortID, 0, 13)
+		}
+	}
+
+	log.Println("Cache warmup completed.")
 }

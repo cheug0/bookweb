@@ -1,31 +1,35 @@
 {{define "content"}}
-<div class="card">
-    <div class="card-title"
-        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-        <h3 style="margin: 0; font-size: 18px; color: #333;">友情链接管理</h3>
-        <span class="badge"
-            style="background: #e3f2fd; color: #1976d2; padding: 5px 10px; border-radius: 15px; font-size: 12px;">共
-            {{len .Links}} 个</span>
-    </div>
+
+<div class="settings-container">
+    <div class="settings-header">友情链接管理 (共 {{len .Links}} 个)</div>
 
     <!-- 添加链接表单 -->
-    <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px; border: 1px dashed #ddd;">
-        <h4 style="margin: 0 0 15px 0; font-size: 14px; color: #666;">添加新链接</h4>
-        <form id="addLinkForm" style="display: flex; gap: 15px; align-items: flex-end;">
+    <div
+        style="background: #f8f9fa; padding: 25px; border-radius: 4px; border: 1px dashed #e0e0e0; margin-bottom: 25px;">
+        <h4 style="margin: 0 0 20px 0; font-size: 15px; color: #2c3e50; font-weight: 500;">添加新链接</h4>
+        <form id="addLinkForm" style="display: flex; gap: 20px; align-items: flex-end;">
             <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 5px; font-size: 12px;">网站名称</label>
-                <input type="text" name="name" class="form-control" placeholder="请输入网站名称" required style="width: 100%;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500;">网站名称</label>
+                <div class="form-control-wrapper" style="width: 100%;">
+                    <input type="text" name="name" class="form-control" placeholder="请输入网站名称" required>
+                </div>
             </div>
             <div style="flex: 2;">
-                <label style="display: block; margin-bottom: 5px; font-size: 12px;">网站链接</label>
-                <input type="text" name="url" class="form-control" placeholder="http:// 或 https://" required
-                    style="width: 100%;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500;">网站链接</label>
+                <div class="form-control-wrapper" style="width: 100%;">
+                    <input type="text" name="url" class="form-control" placeholder="http:// 或 https://" required>
+                </div>
             </div>
-            <div style="width: 80px;">
-                <label style="display: block; margin-bottom: 5px; font-size: 12px;">排序</label>
-                <input type="number" name="order" class="form-control" value="0" style="width: 100%;">
+            <div style="width: 100px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500;">排序</label>
+                <div class="form-control-wrapper" style="width: 100%;">
+                    <input type="number" name="order" class="form-control" value="0">
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="height: 38px;"><i class="fa fa-plus"></i> 添加</button>
+            <div style="padding-bottom: 1px;">
+                <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 25px;"><i
+                        class="fa fa-plus"></i> 添加</button>
+            </div>
         </form>
     </div>
 
@@ -44,7 +48,7 @@
                 <tr>
                     <td>{{$link.Order}}</td>
                     <td style="font-weight: 500;">{{$link.Name}}</td>
-                    <td><a href="{{$link.Url}}" target="_blank" style="color: #1976d2;">{{$link.Url}}</a></td>
+                    <td><a href="{{$link.Url}}" target="_blank" style="color: #3498db;">{{$link.Url}}</a></td>
                     <td>
                         <a href="{{$.AdminPath}}/link/edit?index={{$index}}" class="btn btn-primary btn-sm"><i
                                 class="fa fa-edit"></i> 编辑</a>
@@ -65,6 +69,7 @@
         </table>
     </div>
 </div>
+
 
 <script>
     document.getElementById('addLinkForm').addEventListener('submit', async function (e) {

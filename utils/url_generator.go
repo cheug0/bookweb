@@ -8,6 +8,8 @@ import (
 
 // BookUrl 根据路由配置生成小说信息页 URL
 // 从路由 "book" 规则读取模式，替换 :aid 参数
+// BookUrl 根据路由配置生成小说信息页 URL
+// 从路由 "book" 规则读取模式，替换 :aid 参数
 func BookUrl(articleID int) string {
 	cfg := config.GetRouterConfig()
 	if cfg == nil {
@@ -17,6 +19,7 @@ func BookUrl(articleID int) string {
 	if pattern == "" {
 		return "/book_" + strconv.Itoa(articleID) + ".html"
 	}
+	// 简单的字符串替换比正则快
 	return strings.Replace(pattern, ":aid", strconv.Itoa(articleID), 1)
 }
 
@@ -29,11 +32,15 @@ func ReadUrl(articleID, chapterID int) string {
 	}
 	pattern := cfg.GetRoute("read")
 	if pattern == "" {
+		// 默认优化路径：直接拼接，避免 Replace 开销
 		return "/book/" + strconv.Itoa(articleID) + "/" + strconv.Itoa(chapterID) + "/"
 	}
-	url := strings.Replace(pattern, ":aid", strconv.Itoa(articleID), 1)
-	url = strings.Replace(url, ":cid", strconv.Itoa(chapterID), 1)
-	return url
+	// 动态路由替换
+	aidStr := strconv.Itoa(articleID)
+	cidStr := strconv.Itoa(chapterID)
+	// 一次性替换或链式替换
+	url := strings.Replace(pattern, ":aid", aidStr, 1)
+	return strings.Replace(url, ":cid", cidStr, 1)
 }
 
 // GetSiteName 获取网站名称

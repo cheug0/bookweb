@@ -6,9 +6,13 @@ import (
 	"bookweb/model"
 	"bookweb/plugin"
 	"bookweb/utils"
-	"html/template"
+	"bytes"
+	"compress/gzip"
+	"fmt"
 	"net/http"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 // LangtailUpdateFunc 长尾词更新回调函数（由插件设置）
@@ -35,7 +39,7 @@ func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
 
 	// 2. 获取分类名称
 	sortName := "全部分类"
-	sort, err := dao.GetSortByID(article.SortID)
+	sort, err := dao.GetSortByIDCached(article.SortID)
 	if err == nil {
 		sortName = sort.Caption
 	}
@@ -58,13 +62,13 @@ func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
 		latestChapters = reversedLatest
 	}
 
-	latestArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "postdate", 10)
-	hotArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "allvisit", 10)
+	latestArticles, _ := dao.GetArticlesBySortAndOrderCached(article.SortID, "postdate", 10)
+	hotArticles, _ := dao.GetArticlesBySortAndOrderCached(article.SortID, "allvisit", 10)
 
 	// 4. 获取长尾词列表（如果插件启用）
 	var langtails []*model.Langtail
 	if plugin.GetManager().IsEnabled("langtail") {
-		langtails, _ = dao.GetLangtailsBySourceID(articleID)
+		langtails, _ = dao.GetLangtailsBySourceIDCached(articleID)
 		// 如果没有长尾词或数据较少，异步抓取
 		if len(langtails) < 3 && LangtailUpdateFunc != nil {
 			go func(aid int, name string) {
@@ -85,6 +89,7 @@ func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
 }
 
 // BookInfo 小说信息页面
+// BookInfo 小说信息页面
 func BookInfo(w http.ResponseWriter, r *http.Request) {
 	// 获取并校验参数
 	articleID, ok := GetIDOr404(w, r, "aid")
@@ -92,19 +97,46 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 获取书籍数据
-	bookData, err := GetBookInfoData(articleID, "")
-	if err != nil {
-		NotFound(w, r)
-		return
-	}
-
-	// 增加点击量（排除爬虫）
+	// 增加点击量（排除爬虫）- 移到最前以确保即使命中缓存也能统计
 	userAgent := r.UserAgent()
 	if !utils.IsBot(userAgent) {
 		go func() {
 			dao.IncArticleVisit(articleID)
 		}()
+	}
+
+	// 尝试从缓存获取整页 HTML (5分钟过期)
+	// 使用 Redis 缓存页面，极大提升并发能力
+	// 优先尝试 GZIP 缓存
+	cacheKey := fmt.Sprintf("page_cache_book_%d", articleID)
+	gzipCacheKey := cacheKey + "_gzip"
+
+	useGzip := strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
+
+	// 检查是否开启小说信息页缓存
+	if config.GetGlobalConfig().Site.BookCache && utils.IsRedisEnabled() {
+		if useGzip {
+			if cached, err := utils.CacheGet(gzipCacheKey); err == nil && cached != "" {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.Header().Set("Content-Encoding", "gzip")
+				w.Write([]byte(cached))
+				return
+			}
+		}
+		// 降级尝试普通缓存
+		if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			// middleware 会自动压缩
+			w.Write([]byte(cached))
+			return
+		}
+	}
+
+	// 获取书籍数据
+	bookData, err := GetBookInfoData(articleID, "")
+	if err != nil {
+		NotFound(w, r)
+		return
 	}
 
 	// 准备模版数据
@@ -124,17 +156,35 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		Add("HotArticles", bookData.HotArticles).
 		Add("Langtails", bookData.Langtails)
 
-	tPath, ok := GetTplPathOrError(w, "book_info.html")
-	if !ok {
+	// 使用 Buffer 捕获渲染结果以便缓存
+	var buf bytes.Buffer
+	t := utils.GetTemplate("book_info.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
-	t := template.New("book_info.html").Funcs(utils.BookFuncMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
+	if err := t.Execute(&buf, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t.Execute(w, data)
+
+	html := buf.String()
+	// 写入缓存 (5分钟)
+	if config.GetGlobalConfig().Site.BookCache && utils.IsRedisEnabled() {
+		utils.CacheSet(cacheKey, html, 5*time.Minute)
+
+		// 同时预生成 GZIP 缓存
+		var b bytes.Buffer
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write([]byte(html)); err == nil {
+			if err := gz.Close(); err == nil {
+				utils.CacheSet(gzipCacheKey, b.String(), 5*time.Minute)
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
 }
 
 // ChapterRead 章节阅读页面
@@ -150,22 +200,22 @@ func ChapterRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. 获取章节内容
-	chapter, err := dao.GetChapterByID(chapterID)
+	chapter, err := dao.GetChapterByIDCached(chapterID)
 	if err != nil {
 		NotFound(w, r)
 		return
 	}
 
 	// 2. 获取小说信息 (用于展示名称、作者)
-	article, err := dao.GetArticleByID(articleID)
+	article, err := dao.GetArticleByIDCached(articleID)
 	if err != nil {
 		NotFound(w, r)
 		return
 	}
 
 	// 3. 上下页逻辑
-	prevID, _ := dao.GetPrevChapterID(articleID, chapter.ChapterOrder)
-	nextID, _ := dao.GetNextChapterID(articleID, chapter.ChapterOrder)
+	prevID, _ := dao.GetPrevChapterIDCached(articleID, chapter.ChapterOrder)
+	nextID, _ := dao.GetNextChapterIDCached(articleID, chapter.ChapterOrder)
 
 	// 准备数据
 	// 应用标签化 SEO
@@ -180,14 +230,9 @@ func ChapterRead(w http.ResponseWriter, r *http.Request) {
 		Add("PrevID", prevID).
 		Add("NextID", nextID)
 
-	tPath, ok := GetTplPathOrError(w, "book_reader.html")
-	if !ok {
-		return
-	}
-	t := template.New("book_reader.html").Funcs(utils.BookFuncMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	t := utils.GetTemplate("book_reader.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
 	t.Execute(w, data)
@@ -199,6 +244,31 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 	articleID, ok := GetIDOr404(w, r, "aid")
 	if !ok {
 		return
+	}
+
+	// 优先尝试 GZIP 缓存
+	cacheKey := fmt.Sprintf("page_cache_index_%d", articleID)
+	gzipCacheKey := cacheKey + "_gzip"
+
+	useGzip := strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
+
+	// 检查是否开启小说目录页缓存
+	if config.GetGlobalConfig().Site.BookIndexCache && utils.IsRedisEnabled() {
+		if useGzip {
+			if cached, err := utils.CacheGet(gzipCacheKey); err == nil && cached != "" {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.Header().Set("Content-Encoding", "gzip")
+				w.Write([]byte(cached))
+				return
+			}
+		}
+		// 降级尝试普通缓存
+		if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			// middleware 会自动压缩
+			w.Write([]byte(cached))
+			return
+		}
 	}
 
 	// 1. 获取小说基本信息（带缓存）
@@ -225,17 +295,35 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 		Add("Chapters", chapters).
 		Add("ChapterCount", len(chapters))
 
-	tPath, ok := GetTplPathOrError(w, "book_list.html")
-	if !ok {
+	// 5. 渲染页面
+	var buf bytes.Buffer
+	t := utils.GetTemplate("book_list.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
-	t := template.New("book_list.html").Funcs(utils.BookFuncMap)
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
+	if err := t.Execute(&buf, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t.Execute(w, data)
+
+	html := buf.String()
+	// 写入缓存 (10分钟)
+	if config.GetGlobalConfig().Site.BookIndexCache && utils.IsRedisEnabled() {
+		utils.CacheSet(cacheKey, html, 10*time.Minute)
+
+		// 同时预生成 GZIP 缓存
+		var b bytes.Buffer
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write([]byte(html)); err == nil {
+			if err := gz.Close(); err == nil {
+				utils.CacheSet(gzipCacheKey, b.String(), 10*time.Minute)
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
 }
 
 // CoverImage 处理封面图片请求

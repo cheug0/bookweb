@@ -6,21 +6,16 @@
 </div>
 
 <div id="routes" class="tab-content active">
-    <div class="card">
+    <div class="settings-container">
         <form id="routes-form" onsubmit="saveRoutes(event)">
-            <div class="alert alert-info">
+            <div class="alert alert-info"
+                style="margin-bottom: 25px; border-left: 4px solid #3498db; background: #f8f9fa;">
                 <strong><i class="fa fa-info-circle"></i> 路由规则配置说明：</strong>
                 <ul style="margin: 5px 0 0 20px; font-size: 13px; color: #555;">
                     <li>URL 模式支持 <code>:param</code> 形式的动态参数。</li>
                     <li><strong>book (小说详情)</strong>: 必须包含 <code>:id</code> (小说ID)。例如 <code>/book/:id</code></li>
                     <li><strong>read (章节阅读)</strong>: 必须包含 <code>:aid</code> (小说ID) 和 <code>:cid</code> (章节ID)。例如
-                        <code>/read/:aid/:cid</code>
-                    </li>
-                    <li><strong>sort (分类列表)</strong>: 必须包含 <code>:sortid</code> (分类ID) 和 <code>:page</code> (页码)。例如
-                        <code>/sort/:sortid/:page</code>
-                    </li>
-                    <li><strong>book_index (小说目录)</strong>: 必须包含 <code>:id</code> (小说ID)。例如 <code>/show/:id</code></li>
-                    <li><strong>top (排行榜)</strong>: 无必选参数。例如 <code>/top</code></li>
+                        <code>/read/:aid/:cid</code></li>
                 </ul>
             </div>
             <div class="table-container">
@@ -39,7 +34,6 @@
                                     style="width: 100%;">
                             </td>
                             <td>
-                                <!-- 显示 Key 但不可修改，防止逻辑断裂 -->
                                 <strong>{{$name}}</strong>
                             </td>
                         </tr>
@@ -47,15 +41,18 @@
                     </tbody>
                 </table>
             </div>
-            <div class="form-actions" style="margin-top: 20px; text-align: right;">
-                <button type="submit" class="btn btn-primary">保存路由配置</button>
+            <div class="form-row" style="margin-top: 20px; border-bottom: none;">
+                <label class="form-label"></label>
+                <div class="form-content">
+                    <button type="submit" class="btn btn-primary">保存路由配置</button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
 <div id="sorts" class="tab-content">
-    <div class="card">
+    <div class="settings-container">
         <form id="sorts-form" onsubmit="saveSorts(event)">
             <p style="color: #666; font-size: 13px; margin-bottom: 15px;">提示：排序权重越小越靠前</p>
             <div class="table-container">
@@ -83,17 +80,21 @@
                     </tbody>
                 </table>
             </div>
-            <div class="form-actions" style="margin-top: 20px; text-align: right;">
-                <button type="submit" class="btn btn-primary">保存分类设置</button>
+            <div class="form-row" style="margin-top: 20px; border-bottom: none;">
+                <label class="form-label"></label>
+                <div class="form-content">
+                    <button type="submit" class="btn btn-primary">保存分类设置</button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
 <div id="seo" class="tab-content">
-    <div class="card">
+    <div class="settings-container">
         <form id="seo-form" onsubmit="saveSeo(event)">
-            <div class="alert alert-info" style="margin-bottom: 20px;">
+            <div class="alert alert-info"
+                style="margin-bottom: 25px; border-left: 4px solid #3498db; background: #f8f9fa;">
                 <strong><i class="fa fa-info-circle"></i> 标签说明：</strong>
                 <span style="font-size: 13px; color: #555;">{sitename} (网站名), {articlename} (书名), {author} (作者),
                     {sortname} (分类), {page} (页码)</span>
@@ -102,35 +103,32 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
                 {{range $page, $rule := .SeoRules}}
                 <div class="seo-item" data-page="{{$page}}"
-                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    style="background: #f9f9f9; padding: 20px; border-radius: 4px; border: 1px solid #e0e0e0;">
                     <div
-                        style="border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 12px; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between;">
-                        <span>页面标识</span>
-                        <span style="color: #d32f2f; font-family: monospace;">{{$page}}</span>
+                        style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: 500; font-size: 15px; display: flex; justify-content: space-between; color: #2c3e50;">
+                        <span>页面: {{$page}}</span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 15px;">
                         <label
-                            style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #555;">标题模板
+                            style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #555;">标题模板
                             (Title)</label>
-                        <input type="text" class="form-control seo-title" value="{{$rule.Title}}"
-                            style="width: 100%; padding: 8px; box-sizing: border-box;">
+                        <input type="text" class="form-control seo-title" value="{{$rule.Title}}">
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 15px;">
                         <label
-                            style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #555;">关键词
+                            style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #555;">关键词
                             (Keywords)</label>
-                        <input type="text" class="form-control seo-keywords" value="{{$rule.Keywords}}"
-                            style="width: 100%; padding: 8px; box-sizing: border-box;">
+                        <input type="text" class="form-control seo-keywords" value="{{$rule.Keywords}}">
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label
-                            style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #555;">描述
+                            style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #555;">描述
                             (Description)</label>
                         <textarea class="form-control seo-desc"
-                            style="width: 100%; padding: 8px; height: 60px; resize: vertical; box-sizing: border-box;">{{$rule.Description}}</textarea>
+                            style="height: 80px; resize: vertical;">{{$rule.Description}}</textarea>
                     </div>
                 </div>
                 {{end}}
@@ -139,7 +137,7 @@
             <div class="form-actions"
                 style="margin-top: 30px; text-align: center; position: sticky; bottom: 20px; z-index: 100;">
                 <button type="submit" class="btn btn-primary"
-                    style="padding: 10px 50px; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">保存所有 SEO
+                    style="padding: 10px 50px; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">保存所有 SEO
                     配置</button>
             </div>
         </form>
@@ -160,8 +158,6 @@
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
-        // 修正：使用 URLSearchParams 发送 application/x-www-form-urlencoded 数据
-        // 因为 Go 的 r.ParseForm() 默认不解析 multipart/form-data 的 Body
         const body = new URLSearchParams(formData);
 
         try {

@@ -148,3 +148,18 @@ func GetSearchCountCached(keyword string) (int, error) {
 		return GetSearchCount(keyword)
 	})
 }
+
+func langtailCacheKey(sourceID int) string {
+	return fmt.Sprintf("langtail:%d", sourceID)
+}
+
+// GetLangtailsBySourceIDCached 带缓存的长尾词获取
+func GetLangtailsBySourceIDCached(sourceID int) ([]*model.Langtail, error) {
+	if !utils.IsRedisEnabled() {
+		return GetLangtailsBySourceID(sourceID)
+	}
+	// 缓存1小时
+	return getCached(langtailCacheKey(sourceID), 1*time.Hour, func() ([]*model.Langtail, error) {
+		return GetLangtailsBySourceID(sourceID)
+	})
+}

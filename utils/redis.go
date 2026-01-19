@@ -61,6 +61,14 @@ func CacheDel(key string) error {
 	return RedisClient.Del(redisCtx, key).Err()
 }
 
+// CacheFlush 清空所有缓存 (FLUSHDB)
+func CacheFlush() error {
+	if RedisClient == nil {
+		return fmt.Errorf("redis not enabled")
+	}
+	return RedisClient.FlushDB(redisCtx).Err()
+}
+
 // CacheIncr 增加缓存计数
 func CacheIncr(key string) (int64, error) {
 	if RedisClient == nil {
