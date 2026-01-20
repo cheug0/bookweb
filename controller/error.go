@@ -37,5 +37,14 @@ func GetIDOr404(w http.ResponseWriter, r *http.Request, name string) (int, bool)
 		NotFound(w, r)
 		return 0, false
 	}
+	// 如果是小说 ID，进行解码
+	if name == "aid" || name == "articleid" {
+		original := val
+		val = utils.DecodeID(val)
+		// Debug Log
+		if original != val {
+			// fmt.Printf("DEBUG: GetIDOr404 Decode %s: %d -> %d\n", name, original, val)
+		}
+	}
 	return val, true
 }

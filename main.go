@@ -21,6 +21,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load app config: %v", err)
 	}
+	// 初始化 ID 转换规则
+	if err := utils.ParseIdTransRule(appCfg.Site.IdTransRule); err != nil {
+		log.Printf("Warning: Failed to parse ID trans rule: %v", err)
+	}
 
 	// 初始化数据库
 	utils.InitDB(&appCfg.Db)

@@ -29,13 +29,35 @@
             </div>
 
             <div class="form-row">
-                <label class="form-label">TXT 网址</label>
+                <label class="form-label">domain</label>
                 <div class="form-content">
                     <div class="form-control-wrapper">
                         <!-- Assumed field or reusing Domain for now if exact mapping unclear, keeping strict to current struct -->
                         <input type="text" name="domain" value="{{.Config.Site.Domain}}" class="form-control">
                     </div>
-                    <span class="form-help">源站的 txt 网址，同服务器也可填硬盘地址</span>
+                    <span class="form-help">绑定本站域名</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">强制域名</label>
+                <div class="form-content">
+                    <label class="custom-switch">
+                        <input type="checkbox" name="force_domain" {{if .Config.Site.ForceDomain}}checked{{end}}>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span class="form-help" style="margin-left: 15px;">开启后，非绑定域名无法访问前台页面</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">ID 转换规则</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="text" name="id_trans_rule" value="{{.Config.Site.IdTransRule}}"
+                            class="form-control" placeholder="例如: *2,+100">
+                    </div>
+                    <span class="form-help">公式：支持 +, -, *, /。按顺序运算。用于多站共库时区分 ID (需双向互逆算法)</span>
                 </div>
             </div>
 

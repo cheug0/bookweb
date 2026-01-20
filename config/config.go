@@ -112,6 +112,8 @@ type SiteConfig struct {
 	ReadCache      bool   `json:"read_cache"`       // 开启章节阅读页缓存
 	SortCache      bool   `json:"sort_cache"`       // 开启分类页缓存
 	TopCache       bool   `json:"top_cache"`        // 开启排行榜缓存
+	ForceDomain    bool   `json:"force_domain"`     // 是否强制域名访问
+	IdTransRule    string `json:"id_trans_rule"`    // 小说ID转换规则 (e.g. "*2,+100")
 	GzipEnabled    bool   `json:"gzip_enabled"`     // 开启 GZIP 压缩
 }
 

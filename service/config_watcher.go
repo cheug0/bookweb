@@ -2,6 +2,7 @@ package service
 
 import (
 	"bookweb/config"
+	"bookweb/dao"
 	"bookweb/utils"
 	"log"
 	"os"
@@ -65,6 +66,15 @@ func reloadConfigs(routerChanged bool, onRouterReload func()) {
 		// 数据库热重载
 		// 注意：这里简单实现，直接重连。高并发下建议加锁或使用连接池管理。
 		utils.InitDB(&newCfg.Db)
+
+		// 必须重新初始化预编译语句，因为 DB 对象变了
+		if err := dao.InitPreparedStatements(); err != nil {
+			log.Printf("Error re-initializing prepared statements: %v", err)
+		}
+
+		// 重新解析 ID 转换规则 (防止手动修改配置文件的情况)
+		utils.ParseIdTransRule(newCfg.Site.IdTransRule)
+
 		// 如果主配置变化，可能涉及 AdminPath 变化，也需要重载路由
 		onRouterReload()
 	}
@@ -72,6 +82,10 @@ func reloadConfigs(routerChanged bool, onRouterReload func()) {
 	// 2. 重载友情链接
 	if err := config.LoadLinkConfig("config/link.conf"); err != nil {
 		log.Printf("Error reloading link.conf: %v", err)
+	}
+
+	if err := config.LoadSeoConfig("config/seo.conf"); err != nil {
+		log.Printf("Error reloading seo.conf: %v", err)
 	}
 
 	// 3. 如果路由配置变了，触发外部传入的回调

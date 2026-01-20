@@ -56,6 +56,9 @@ var CommonFuncMap = template.FuncMap{
 	},
 	"plus":  func(a, b int) int { return a + b },
 	"minus": func(a, b int) int { return a - b },
+	"transID": func(id int) int {
+		return EncodeID(id)
+	},
 }
 
 // InitTemplates 初始化所有模板（启动时调用）

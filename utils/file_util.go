@@ -130,7 +130,7 @@ func GetCoverPath(articleID int) string {
 			strings.TrimRight(cfg.Storage.Oss.Domain, "/"), subDir, articleID, articleID)
 	}
 	// 默认本地模式，返回内部路由路径
-	return fmt.Sprintf("/img/%d.jpg", articleID)
+	return fmt.Sprintf("/img/%d.jpg", EncodeID(articleID))
 }
 
 // GetPhysicalCoverPath 获取小说封面图片在存储中的相对物理路径

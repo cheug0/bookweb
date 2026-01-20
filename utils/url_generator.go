@@ -13,14 +13,14 @@ import (
 func BookUrl(articleID int) string {
 	cfg := config.GetRouterConfig()
 	if cfg == nil {
-		return "/book_" + strconv.Itoa(articleID) + ".html"
+		return "/book_" + strconv.Itoa(EncodeID(articleID)) + ".html"
 	}
 	pattern := cfg.GetRoute("book")
 	if pattern == "" {
-		return "/book_" + strconv.Itoa(articleID) + ".html"
+		return "/book_" + strconv.Itoa(EncodeID(articleID)) + ".html"
 	}
 	// 简单的字符串替换比正则快
-	return strings.Replace(pattern, ":aid", strconv.Itoa(articleID), 1)
+	return strings.Replace(pattern, ":aid", strconv.Itoa(EncodeID(articleID)), 1)
 }
 
 // ReadUrl 根据路由配置生成章节阅读页 URL
@@ -28,15 +28,15 @@ func BookUrl(articleID int) string {
 func ReadUrl(articleID, chapterID int) string {
 	cfg := config.GetRouterConfig()
 	if cfg == nil {
-		return "/book/" + strconv.Itoa(articleID) + "/" + strconv.Itoa(chapterID) + "/"
+		return "/book/" + strconv.Itoa(EncodeID(articleID)) + "/" + strconv.Itoa(chapterID) + "/"
 	}
 	pattern := cfg.GetRoute("read")
 	if pattern == "" {
 		// 默认优化路径：直接拼接，避免 Replace 开销
-		return "/book/" + strconv.Itoa(articleID) + "/" + strconv.Itoa(chapterID) + "/"
+		return "/book/" + strconv.Itoa(EncodeID(articleID)) + "/" + strconv.Itoa(chapterID) + "/"
 	}
 	// 动态路由替换
-	aidStr := strconv.Itoa(articleID)
+	aidStr := strconv.Itoa(EncodeID(articleID))
 	cidStr := strconv.Itoa(chapterID)
 	// 一次性替换或链式替换
 	url := strings.Replace(pattern, ":aid", aidStr, 1)

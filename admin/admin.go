@@ -173,7 +173,14 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			cfg.Site.ReadCache = r.FormValue("read_cache") == "on"
 			cfg.Site.SortCache = r.FormValue("sort_cache") == "on"
 			cfg.Site.TopCache = r.FormValue("top_cache") == "on"
+			cfg.Site.TopCache = r.FormValue("top_cache") == "on"
+			cfg.Site.ForceDomain = r.FormValue("force_domain") == "on"
+			cfg.Site.IdTransRule = r.FormValue("id_trans_rule")
 			cfg.Site.GzipEnabled = r.FormValue("gzip_enabled") == "on"
+
+			// 更新 ID 转换规则
+			utils.ParseIdTransRule(cfg.Site.IdTransRule)
+
 			cfg.Storage.Type = r.FormValue("storage_type")
 
 			// 保存本地存储配置

@@ -3,6 +3,7 @@ package controller
 import (
 	"bookweb/dao"
 	"bookweb/service"
+	"bookweb/utils"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -19,6 +20,8 @@ func AddBookcase(w http.ResponseWriter, r *http.Request) {
 
 	articleIDStr := r.PostFormValue("articleid")
 	articleID, _ := strconv.Atoi(articleIDStr)
+	// ID 转换
+	articleID = utils.DecodeID(articleID)
 
 	if articleID <= 0 {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "message": "无效的文章ID"})
@@ -86,6 +89,8 @@ func DeleteBookcase(w http.ResponseWriter, r *http.Request) {
 	} else {
 		articleIDStr := r.PostFormValue("articleid")
 		articleID, _ := strconv.Atoi(articleIDStr)
+		// ID 转换
+		articleID = utils.DecodeID(articleID)
 		if articleID <= 0 {
 			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "message": "无效的文章ID"})
 			return

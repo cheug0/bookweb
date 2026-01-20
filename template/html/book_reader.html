@@ -15,7 +15,7 @@
                             <button onclick="javascript:changeSize('plus');" title="放大字号">A+</button>
                         </div>
                         <div>
-                            <a href="javascript:addToBookmark({{.Article.ArticleID}}, {{.Chapter.ChapterID}});"
+                            <a href="javascript:addToBookmark({{transID .Article.ArticleID}}, {{.Chapter.ChapterID}});"
                                 title="加入书签"><i class="fa fa-bookmark"></i></a>
                             <a href="javascript:isnight();" title="白天夜间模式"><i
                                     class="fa fa-moon-o fa-flip-horizontal"></i></a>

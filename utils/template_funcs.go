@@ -44,4 +44,7 @@ var BookFuncMap = template.FuncMap{
 	"ad": func(slotID string) template.HTML {
 		return GetAdContent(slotID)
 	},
+	"transID": func(id int) int {
+		return EncodeID(id)
+	},
 }

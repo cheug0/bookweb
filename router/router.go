@@ -289,6 +289,9 @@ func adaptHandler(h http.HandlerFunc) httprouter.Handle {
 		if !checkDBConnection(w) {
 			return
 		}
+		if !checkDomain(w, r) {
+			return
+		}
 		ctx := context.WithValue(r.Context(), model.ParamsKey, ps)
 		h(w, r.WithContext(ctx))
 	}
@@ -298,6 +301,9 @@ func adaptHandler(h http.HandlerFunc) httprouter.Handle {
 func adaptHandlerFunc(h http.HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if !checkDBConnection(w) {
+			return
+		}
+		if !checkDomain(w, r) {
 			return
 		}
 		h(w, r)
@@ -316,6 +322,27 @@ func checkDBConnection(w http.ResponseWriter) bool {
 		}
 		t.Execute(w, nil)
 		return false
+	}
+	return true
+}
+
+// checkDomain 检查访问域名是否合法
+func checkDomain(w http.ResponseWriter, r *http.Request) bool {
+	cfg := config.GetGlobalConfig()
+	if cfg != nil && cfg.Site.ForceDomain && cfg.Site.Domain != "" {
+		// 如果是后台管理路径，不做域名限制
+		adminPath := cfg.Site.AdminPath
+		if adminPath == "" {
+			adminPath = "/admin"
+		}
+		if strings.HasPrefix(r.URL.Path, adminPath) {
+			return true
+		}
+
+		if r.Host != cfg.Site.Domain {
+			http.Error(w, "Forbidden: Domain not allowed (Invalid Host)", http.StatusForbidden)
+			return false
+		}
 	}
 	return true
 }

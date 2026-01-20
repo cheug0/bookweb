@@ -3,6 +3,7 @@ package controller
 import (
 	"bookweb/dao"
 	"bookweb/service"
+	"bookweb/utils"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -19,6 +20,8 @@ func AddBookmark(w http.ResponseWriter, r *http.Request) {
 
 	articleIDStr := r.PostFormValue("articleid")
 	articleID, _ := strconv.Atoi(articleIDStr)
+	// ID 转换
+	articleID = utils.DecodeID(articleID)
 	chapterIDStr := r.PostFormValue("chapterid")
 	chapterID, _ := strconv.Atoi(chapterIDStr)
 
