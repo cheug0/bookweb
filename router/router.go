@@ -66,7 +66,7 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 	router := httprouter.New()
 	complexRoutes = nil // 清空历史
 
-	// 静态文件
+	// 静态文件 - 使用绝对路径确保文件可以正确加载
 	router.ServeFiles("/static/*filepath", http.Dir("static"))
 
 	// 后台管理路由
@@ -145,11 +145,14 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 
 	// 注册插件路由
 	pluginRoutes := plugin.GetManager().GetAllRoutes()
+	pluginMethods := []string{"GET", "POST"}
 	for pattern, handler := range pluginRoutes {
 		if isComplexPattern(pattern) {
-			addComplexRoute(pattern, handler, []string{"GET"})
+			addComplexRoute(pattern, handler, pluginMethods)
 		} else {
-			router.GET(pattern, adaptHandler(handler))
+			for _, method := range pluginMethods {
+				router.Handle(method, pattern, adaptHandler(handler))
+			}
 		}
 		log.Printf("Plugin route registered: %s", pattern)
 	}

@@ -3,6 +3,7 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -11,8 +12,13 @@ import (
 
 // GetChapterByID 根据ChapterID获取章节详情（包含内容）
 func GetChapterByID(id int) (*model.Chapter, error) {
-	sqlStr := "select chapterid, siteid, articleid, articlename, volumeid, posterid, poster, postdate, lastupdate, chaptername, chapterorder, size, saleprice, salenum, totalcost, attachment, isvip, chaptertype, power, display from jieqi_article_chapter where chapterid = ?"
-	row := utils.Db.QueryRow(sqlStr, id)
+	var row *sql.Row
+	if stmtGetChapterByID != nil {
+		row = stmtGetChapterByID.QueryRow(id)
+	} else {
+		sqlStr := "select chapterid, siteid, articleid, articlename, volumeid, posterid, poster, postdate, lastupdate, chaptername, chapterorder, size, saleprice, salenum, totalcost, attachment, isvip, chaptertype, power, display from jieqi_article_chapter where chapterid = ?"
+		row = utils.Db.QueryRow(sqlStr, id)
+	}
 	ch := &model.Chapter{}
 	err := row.Scan(&ch.ChapterID, &ch.SiteID, &ch.ArticleID, &ch.ArticleName, &ch.VolumeID, &ch.PosterID, &ch.Poster, &ch.PostDate, &ch.LastUpdate, &ch.ChapterName, &ch.ChapterOrder, &ch.Size, &ch.SalePrice, &ch.SaleNum, &ch.TotalCost, &ch.Attachment, &ch.IsVIP, &ch.ChapterType, &ch.Power, &ch.Display)
 	if err != nil {
@@ -77,9 +83,14 @@ func GetChapterByIDCached(id int) (*model.Chapter, error) {
 
 // GetPrevChapterID 获取上一章节ID
 func GetPrevChapterID(articleID, currentOrder int) (int, error) {
-	sqlStr := "select chapterid from jieqi_article_chapter where articleid = ? and chapterorder < ? order by chapterorder desc limit 1"
 	var id int
-	err := utils.Db.QueryRow(sqlStr, articleID, currentOrder).Scan(&id)
+	var err error
+	if stmtGetPrevChapterID != nil {
+		err = stmtGetPrevChapterID.QueryRow(articleID, currentOrder).Scan(&id)
+	} else {
+		sqlStr := "select chapterid from jieqi_article_chapter where articleid = ? and chapterorder < ? order by chapterorder desc limit 1"
+		err = utils.Db.QueryRow(sqlStr, articleID, currentOrder).Scan(&id)
+	}
 	return id, err
 }
 
@@ -115,8 +126,13 @@ func GetNextChapterIDCached(articleID, currentOrder int) (int, error) {
 
 // GetNextChapterID 获取下一章节ID
 func GetNextChapterID(articleID, currentOrder int) (int, error) {
-	sqlStr := "select chapterid from jieqi_article_chapter where articleid = ? and chapterorder > ? order by chapterorder asc limit 1"
 	var id int
-	err := utils.Db.QueryRow(sqlStr, articleID, currentOrder).Scan(&id)
+	var err error
+	if stmtGetNextChapterID != nil {
+		err = stmtGetNextChapterID.QueryRow(articleID, currentOrder).Scan(&id)
+	} else {
+		sqlStr := "select chapterid from jieqi_article_chapter where articleid = ? and chapterorder > ? order by chapterorder asc limit 1"
+		err = utils.Db.QueryRow(sqlStr, articleID, currentOrder).Scan(&id)
+	}
 	return id, err
 }

@@ -193,6 +193,15 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			cfg.Db.User = r.FormValue("db_user")
 			cfg.Db.Password = r.FormValue("db_password")
 			cfg.Db.DbName = r.FormValue("db_dbname")
+			if maxOpen, err := strconv.Atoi(r.FormValue("db_max_open")); err == nil {
+				cfg.Db.MaxOpenConns = maxOpen
+			}
+			if maxIdle, err := strconv.Atoi(r.FormValue("db_max_idle")); err == nil {
+				cfg.Db.MaxIdleConns = maxIdle
+			}
+			if maxLife, err := strconv.Atoi(r.FormValue("db_max_life")); err == nil {
+				cfg.Db.ConnMaxLifetime = maxLife
+			}
 		} else if updateType == "redis" {
 			// 保存 Redis 配置
 			cfg.Redis.Enabled = r.FormValue("redis_enabled") == "on"

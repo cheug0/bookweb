@@ -20,7 +20,9 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 		if w.Header().Get("Content-Encoding") != "" {
 			return w.ResponseWriter.Write(b)
 		}
-		// 否则初始化 gzip writer
+		// 删除 Content-Length，因为压缩后大小会改变
+		w.Header().Del("Content-Length")
+		// 设置 gzip 编码
 		w.Header().Set("Content-Encoding", "gzip")
 		w.gzWriter = gzip.NewWriter(w.ResponseWriter)
 	}
@@ -46,7 +48,13 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// 2. 检查客户端是否支持 gzip
+		// 2. 跳过静态文件和图片 - http.ServeFile 预先发送 Content-Length，无法正确压缩
+		if strings.HasPrefix(r.URL.Path, "/static/") || strings.HasPrefix(r.URL.Path, "/img/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// 3. 检查客户端是否支持 gzip
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
 			return

@@ -5,6 +5,7 @@ import (
 	"bookweb/dao"
 	"bookweb/plugin"
 	"bookweb/plugin/ads"
+	"bookweb/plugin/db_optimizer"
 	"bookweb/plugin/langtail"
 	"bookweb/router"
 	"bookweb/service"
@@ -23,6 +24,11 @@ func main() {
 
 	// 初始化数据库
 	utils.InitDB(&appCfg.Db)
+
+	// 初始化预编译SQL语句
+	if err := dao.InitPreparedStatements(); err != nil {
+		log.Printf("Warning: Failed to init prepared statements: %v", err)
+	}
 
 	// 初始化 Redis 缓存 (如果启用)
 	if appCfg.Redis.Enabled {
@@ -55,6 +61,7 @@ func main() {
 	pluginManager := plugin.GetManager()
 	pluginManager.Register(langtail.New())
 	pluginManager.Register(ads.New())
+	pluginManager.Register(db_optimizer.New())
 	if err := pluginManager.InitAll("config/plugins.conf"); err != nil {
 		log.Printf("Warning: Failed to init plugins: %v", err)
 	}

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -30,27 +31,70 @@ type BookInfoData struct {
 }
 
 // GetBookInfoData 获取书籍信息页面数据（供插件复用）
+// 优化：使用并行查询减少总延迟
 func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
-	// 1. 获取小说基本信息（带缓存）
+	// 1. 先获取小说基本信息（必须先执行以获取 SortID）
 	article, err := dao.GetArticleByIDCached(articleID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. 获取分类名称
-	sortName := "全部分类"
-	sort, err := dao.GetSortByIDCached(article.SortID)
-	if err == nil {
-		sortName = sort.Caption
+	// 2. 并行执行剩余的独立查询
+	var wg sync.WaitGroup
+	var sortName = "全部分类"
+	var chapters []*model.Chapter
+	var latestArticles, hotArticles []*model.Article
+	var langtails []*model.Langtail
+
+	// 获取分类名称
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if sort, err := dao.GetSortByIDCached(article.SortID); err == nil {
+			sortName = sort.Caption
+		}
+	}()
+
+	// 获取章节目录
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		chapters, _ = dao.GetChaptersByArticleIDCached(articleID)
+		if chapters == nil {
+			chapters = []*model.Chapter{}
+		}
+	}()
+
+	// 获取最新文章
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		latestArticles, _ = dao.GetArticlesBySortAndOrderCached(article.SortID, "postdate", 10)
+	}()
+
+	// 获取热门文章
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		hotArticles, _ = dao.GetArticlesBySortAndOrderCached(article.SortID, "allvisit", 10)
+	}()
+
+	// 获取长尾词（如果插件启用）
+	if plugin.GetManager().IsEnabled("langtail") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			langtails, _ = dao.GetLangtailsBySourceIDCached(articleID)
+			// 如果没有长尾词或数据较少，异步抓取
+			if len(langtails) < 3 && LangtailUpdateFunc != nil {
+				go LangtailUpdateFunc(articleID, articleName, 7)
+			}
+		}()
 	}
 
-	// 3. 获取章节目录（带缓存）
-	chapters, err := dao.GetChaptersByArticleIDCached(articleID)
-	if err != nil {
-		chapters = []*model.Chapter{}
-	}
+	wg.Wait()
 
-	// 截取最新 12 条记录用于展示
+	// 截取最新 12 条章节记录用于展示
 	latestChapters := chapters
 	if len(chapters) > 12 {
 		latestChapters = chapters[len(chapters)-12:]
@@ -60,21 +104,6 @@ func GetBookInfoData(articleID int, articleName string) (*BookInfoData, error) {
 			reversedLatest[len(latestChapters)-1-i] = v
 		}
 		latestChapters = reversedLatest
-	}
-
-	latestArticles, _ := dao.GetArticlesBySortAndOrderCached(article.SortID, "postdate", 10)
-	hotArticles, _ := dao.GetArticlesBySortAndOrderCached(article.SortID, "allvisit", 10)
-
-	// 4. 获取长尾词列表（如果插件启用）
-	var langtails []*model.Langtail
-	if plugin.GetManager().IsEnabled("langtail") {
-		langtails, _ = dao.GetLangtailsBySourceIDCached(articleID)
-		// 如果没有长尾词或数据较少，异步抓取
-		if len(langtails) < 3 && LangtailUpdateFunc != nil {
-			go func(aid int, name string) {
-				LangtailUpdateFunc(aid, name, 7)
-			}(articleID, articleName)
-		}
 	}
 
 	return &BookInfoData{

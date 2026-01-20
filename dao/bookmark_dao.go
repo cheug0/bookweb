@@ -3,12 +3,19 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 )
 
 // GetBookmarkList 获取书签列表
 func GetBookmarkList(userID int, offset, limit int) ([]*model.Bookmark, error) {
-	sqlStr := "select bookid, articleid, articlename, userid, username, chapterid, chaptername, chapterorder, joindate from bookmark where userid = ? order by joindate desc limit ?, ?"
-	rows, err := utils.Db.Query(sqlStr, userID, offset, limit)
+	var rows *sql.Rows
+	var err error
+	if stmtGetBookmarkByUser != nil {
+		rows, err = stmtGetBookmarkByUser.Query(userID, offset, limit)
+	} else {
+		sqlStr := "select bookid, articleid, articlename, userid, username, chapterid, chaptername, chapterorder, joindate from bookmark where userid = ? order by joindate desc limit ?, ?"
+		rows, err = utils.Db.Query(sqlStr, userID, offset, limit)
+	}
 	if err != nil {
 		return nil, err
 	}

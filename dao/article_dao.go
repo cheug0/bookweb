@@ -3,6 +3,7 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,8 +11,13 @@ import (
 
 // GetArticleByID 根据ArticleID获取小说信息
 func GetArticleByID(id int) (*model.Article, error) {
-	sqlStr := "select articleid, siteid, postdate, lastupdate, articlename, keywords, initial, authorid, author, posterid, poster, agentid, agent, sortid, typeid, intro, notice, setting, lastvolumeid, lastvolume, lastchapterid, lastchapter, chapters, size, lastvisit, dayvisit, weekvisit, monthvisit, allvisit, lastvote, dayvote, weekvote, monthvote, allvote, fullflag, imgflag from jieqi_article_article where articleid = ?"
-	row := utils.Db.QueryRow(sqlStr, id)
+	var row *sql.Row
+	if stmtGetArticleByID != nil {
+		row = stmtGetArticleByID.QueryRow(id)
+	} else {
+		sqlStr := "select articleid, siteid, postdate, lastupdate, articlename, keywords, initial, authorid, author, posterid, poster, agentid, agent, sortid, typeid, intro, notice, setting, lastvolumeid, lastvolume, lastchapterid, lastchapter, chapters, size, lastvisit, dayvisit, weekvisit, monthvisit, allvisit, lastvote, dayvote, weekvote, monthvote, allvote, fullflag, imgflag from jieqi_article_article where articleid = ?"
+		row = utils.Db.QueryRow(sqlStr, id)
+	}
 	art := &model.Article{}
 	err := row.Scan(&art.ArticleID, &art.SiteID, &art.PostDate, &art.LastUpdate, &art.ArticleName, &art.Keywords, &art.Initial, &art.AuthorID, &art.Author, &art.PosterID, &art.Poster, &art.AgentID, &art.Agent, &art.SortID, &art.TypeID, &art.Intro, &art.Notice, &art.Setting, &art.LastVolumeID, &art.LastVolume, &art.LastChapterID, &art.LastChapter, &art.Chapters, &art.Size, &art.LastVisit, &art.DayVisit, &art.WeekVisit, &art.MonthVisit, &art.AllVisit, &art.LastVote, &art.DayVote, &art.WeekVote, &art.MonthVote, &art.AllVote, &art.FullFlag, &art.ImgFlag)
 	if err != nil {
@@ -21,11 +27,15 @@ func GetArticleByID(id int) (*model.Article, error) {
 }
 
 // GetChaptersByArticleID 根据ArticleID获取章节列表(不含内容)
-// GetChaptersByArticleID 根据ArticleID获取章节列表(不含内容)
 func GetChaptersByArticleID(articleID int) ([]*model.Chapter, error) {
-	// 优化：只查询列表需要的字段，减少IO和内存消耗 (从19个字段减少到6个)
-	sqlStr := "select chapterid, chaptername, chapterorder, isvip, size, lastupdate from jieqi_article_chapter where articleid = ? order by chapterorder asc"
-	rows, err := utils.Db.Query(sqlStr, articleID)
+	var rows *sql.Rows
+	var err error
+	if stmtGetChaptersByArticle != nil {
+		rows, err = stmtGetChaptersByArticle.Query(articleID)
+	} else {
+		sqlStr := "select chapterid, chaptername, chapterorder, isvip, size, lastupdate from jieqi_article_chapter where articleid = ? order by chapterorder asc"
+		rows, err = utils.Db.Query(sqlStr, articleID)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +44,6 @@ func GetChaptersByArticleID(articleID int) ([]*model.Chapter, error) {
 	var chapters []*model.Chapter
 	for rows.Next() {
 		ch := &model.Chapter{}
-		// 必须与 SQL 字段顺序一致
 		err := rows.Scan(&ch.ChapterID, &ch.ChapterName, &ch.ChapterOrder, &ch.IsVIP, &ch.Size, &ch.LastUpdate)
 		if err != nil {
 			return nil, err
@@ -79,7 +88,11 @@ func GetArticlesBySortID(sortID int, offset, limit int) ([]*model.Article, error
 func GetArticlesBySortIDCached(sortID int, offset, limit int) ([]*model.Article, error) {
 	cacheKey := fmt.Sprintf("articles_sort_%d_%d_%d", sortID, offset, limit)
 
-	// 尝试从缓存获取
+	if !utils.IsRedisEnabled() {
+		return GetArticlesBySortID(sortID, offset, limit)
+	}
+
+	// 尝试从 Redis 缓存获取
 	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
 		var articles []*model.Article
 		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
@@ -93,11 +106,10 @@ func GetArticlesBySortIDCached(sortID int, offset, limit int) ([]*model.Article,
 		return nil, err
 	}
 
-	// 写入缓存（5分钟过期）
+	// 写入缓存
 	if data, err := json.Marshal(articles); err == nil {
 		utils.CacheSet(cacheKey, string(data), 5*time.Minute)
 	}
-
 	return articles, nil
 }
 
@@ -117,8 +129,14 @@ func GetArticleCountBySortID(sortID int) (int, error) {
 
 // GetVisitArticles 获取按点击量排序的小说列表
 func GetVisitArticles(limit int) ([]*model.Article, error) {
-	sqlStr := "select articleid, articlename, author, intro, size, lastupdate, sortid, fullflag, imgflag, lastchapterid, lastchapter from jieqi_article_article order by allvisit desc limit ?"
-	rows, err := utils.Db.Query(sqlStr, limit)
+	var rows *sql.Rows
+	var err error
+	if stmtGetVisitArticles != nil {
+		rows, err = stmtGetVisitArticles.Query(limit)
+	} else {
+		sqlStr := "select articleid, articlename, author, intro, size, lastupdate, sortid, fullflag, imgflag, lastchapterid, lastchapter from jieqi_article_article order by allvisit desc limit ?"
+		rows, err = utils.Db.Query(sqlStr, limit)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +158,11 @@ func GetVisitArticles(limit int) ([]*model.Article, error) {
 func GetVisitArticlesCached(limit int) ([]*model.Article, error) {
 	cacheKey := fmt.Sprintf("visit_articles_%d", limit)
 
-	// 尝试从缓存获取
+	if !utils.IsRedisEnabled() {
+		return GetVisitArticles(limit)
+	}
+
+	// 尝试从 Redis 缓存获取
 	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
 		var articles []*model.Article
 		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
@@ -148,17 +170,14 @@ func GetVisitArticlesCached(limit int) ([]*model.Article, error) {
 		}
 	}
 
-	// 从数据库获取
 	articles, err := GetVisitArticles(limit)
 	if err != nil {
 		return nil, err
 	}
 
-	// 写入缓存（5分钟过期）
 	if data, err := json.Marshal(articles); err == nil {
 		utils.CacheSet(cacheKey, string(data), 5*time.Minute)
 	}
-
 	return articles, nil
 }
 
@@ -203,7 +222,11 @@ func GetArticlesBySortAndOrder(sortID int, orderBy string, limit int) ([]*model.
 func GetArticlesBySortAndOrderCached(sortID int, order string, limit int) ([]*model.Article, error) {
 	cacheKey := fmt.Sprintf("articles_sort_%d_%s_%d", sortID, order, limit)
 
-	// 尝试从缓存获取
+	if !utils.IsRedisEnabled() {
+		return GetArticlesBySortAndOrder(sortID, order, limit)
+	}
+
+	// 尝试从 Redis 缓存获取
 	if cached, err := utils.CacheGet(cacheKey); err == nil && cached != "" {
 		var articles []*model.Article
 		if err := json.Unmarshal([]byte(cached), &articles); err == nil {
@@ -211,17 +234,14 @@ func GetArticlesBySortAndOrderCached(sortID int, order string, limit int) ([]*mo
 		}
 	}
 
-	// 从数据库获取
 	articles, err := GetArticlesBySortAndOrder(sortID, order, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	// 写入缓存（10分钟过期）
 	if data, err := json.Marshal(articles); err == nil {
 		utils.CacheSet(cacheKey, string(data), 10*time.Minute)
 	}
-
 	return articles, nil
 }
 

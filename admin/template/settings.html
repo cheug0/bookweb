@@ -294,6 +294,44 @@
                 </div>
             </div>
 
+            <div class="settings-header" style="margin-top: 30px;">连接池设置</div>
+
+            <div class="form-row">
+                <label class="form-label">Max Open</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="number" name="db_max_open"
+                            value="{{if .Config.Db.MaxOpenConns}}{{.Config.Db.MaxOpenConns}}{{else}}200{{end}}"
+                            class="form-control" placeholder="200">
+                    </div>
+                    <span class="form-help">最大打开连接数</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">Max Idle</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="number" name="db_max_idle"
+                            value="{{if .Config.Db.MaxIdleConns}}{{.Config.Db.MaxIdleConns}}{{else}}50{{end}}"
+                            class="form-control" placeholder="50">
+                    </div>
+                    <span class="form-help">最大空闲连接数</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">Max Lifetime</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="number" name="db_max_life"
+                            value="{{if .Config.Db.ConnMaxLifetime}}{{.Config.Db.ConnMaxLifetime}}{{else}}300{{end}}"
+                            class="form-control" placeholder="300">
+                    </div>
+                    <span class="form-help">连接最大生命周期 (秒)</span>
+                </div>
+            </div>
+
             <div style="margin-top: 30px; padding-left: 145px;">
                 <button type="button" class="btn btn-info" onclick="testDbConnection()"
                     style="margin-right: 15px;">测试连接</button>

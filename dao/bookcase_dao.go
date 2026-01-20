@@ -3,12 +3,19 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 )
 
 // GetBookcaseList 获取书架列表
 func GetBookcaseList(userID int, offset, limit int) ([]*model.Bookcase, error) {
-	sqlStr := "select caseid, articleid, articlename, userid, username, chapterid, chaptername, chapterorder, joindate, lastvisit, flag from bookcase where userid = ? order by lastvisit desc limit ?, ?"
-	rows, err := utils.Db.Query(sqlStr, userID, offset, limit)
+	var rows *sql.Rows
+	var err error
+	if stmtGetBookcaseByUser != nil {
+		rows, err = stmtGetBookcaseByUser.Query(userID, offset, limit)
+	} else {
+		sqlStr := "select caseid, articleid, articlename, userid, username, chapterid, chaptername, chapterorder, joindate, lastvisit, flag from bookcase where userid = ? order by lastvisit desc limit ?, ?"
+		rows, err = utils.Db.Query(sqlStr, userID, offset, limit)
+	}
 	if err != nil {
 		return nil, err
 	}

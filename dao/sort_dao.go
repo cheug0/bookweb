@@ -3,6 +3,7 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,8 +11,14 @@ import (
 
 // GetAllSorts 获取所有分类，按 weight 排序
 func GetAllSorts() ([]*model.Sort, error) {
-	sqlStr := "select sortid, weight, caption, shortname from sort order by weight asc"
-	rows, err := utils.Db.Query(sqlStr)
+	var rows *sql.Rows
+	var err error
+	if stmtGetAllSorts != nil {
+		rows, err = stmtGetAllSorts.Query()
+	} else {
+		sqlStr := "select sortid, weight, caption, shortname from sort order by weight asc"
+		rows, err = utils.Db.Query(sqlStr)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +38,13 @@ func GetAllSorts() ([]*model.Sort, error) {
 
 // GetSortByID 根据 ID 获取单个分类信息
 func GetSortByID(sortID int) (*model.Sort, error) {
-	sqlStr := "select sortid, weight, caption, shortname from sort where sortid = ?"
-	row := utils.Db.QueryRow(sqlStr, sortID)
+	var row *sql.Row
+	if stmtGetSortByID != nil {
+		row = stmtGetSortByID.QueryRow(sortID)
+	} else {
+		sqlStr := "select sortid, weight, caption, shortname from sort where sortid = ?"
+		row = utils.Db.QueryRow(sqlStr, sortID)
+	}
 	s := &model.Sort{}
 	err := row.Scan(&s.SortID, &s.Weight, &s.Caption, &s.ShortName)
 	if err != nil {

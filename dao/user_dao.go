@@ -3,13 +3,19 @@ package dao
 import (
 	"bookweb/model"
 	"bookweb/utils"
+	"database/sql"
 	"fmt"
 )
 
 // CheckUserNameAndPassword 验证用户名和密码
 func CheckUserNameAndPassword(username string, password string) (*model.User, error) {
-	sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where username = ? and password = ?"
-	row := utils.Db.QueryRow(sqlStr, username, password)
+	var row *sql.Row
+	if stmtGetUserByLogin != nil {
+		row = stmtGetUserByLogin.QueryRow(username, password)
+	} else {
+		sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where username = ? and password = ?"
+		row = utils.Db.QueryRow(sqlStr, username, password)
+	}
 	user := &model.User{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &user.LastLoginTime, &user.CurrentLoginTime)
 	if err != nil {
@@ -54,8 +60,13 @@ func UpdateUser(user *model.User) error {
 
 // GetUserByID 根据ID获取用户
 func GetUserByID(id int) (*model.User, error) {
-	sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where id = ?"
-	row := utils.Db.QueryRow(sqlStr, id)
+	var row *sql.Row
+	if stmtGetUserByID != nil {
+		row = stmtGetUserByID.QueryRow(id)
+	} else {
+		sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where id = ?"
+		row = utils.Db.QueryRow(sqlStr, id)
+	}
 	user := &model.User{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &user.LastLoginTime, &user.CurrentLoginTime)
 	if err != nil {

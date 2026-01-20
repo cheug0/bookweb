@@ -42,7 +42,7 @@ func searchCountCacheKey(keyword string) string {
 	return fmt.Sprintf("search_count:%s", keyword)
 }
 
-// getCached 泛型缓存获取函数
+// getCached 泛型缓存获取函数 (Redis)
 func getCached[T any](key string, ttl time.Duration, fetchFunc func() (T, error)) (T, error) {
 	// 1. Check Cache
 	cached, err := utils.CacheGet(key)
@@ -73,7 +73,6 @@ func GetArticleByIDCached(id int) (*model.Article, error) {
 	if !utils.IsRedisEnabled() {
 		return GetArticleByID(id)
 	}
-
 	return getCached(articleCacheKey(id), ArticleCacheTTL, func() (*model.Article, error) {
 		return GetArticleByID(id)
 	})
@@ -84,7 +83,6 @@ func GetChaptersByArticleIDCached(articleID int) ([]*model.Chapter, error) {
 	if !utils.IsRedisEnabled() {
 		return GetChaptersByArticleID(articleID)
 	}
-
 	return getCached(chaptersCacheKey(articleID), ChaptersCacheTTL, func() ([]*model.Chapter, error) {
 		return GetChaptersByArticleID(articleID)
 	})
@@ -95,7 +93,6 @@ func GetAllSortsCached() ([]*model.Sort, error) {
 	if !utils.IsRedisEnabled() {
 		return GetAllSorts()
 	}
-
 	return getCached(sortsCacheKey(), SortsCacheTTL, func() ([]*model.Sort, error) {
 		return GetAllSorts()
 	})
@@ -106,7 +103,6 @@ func GetRankArticlesCached(orderBy string, limit int) ([]*model.Article, error) 
 	if !utils.IsRedisEnabled() {
 		return GetRankArticles(orderBy, limit)
 	}
-
 	return getCached(rankCacheKey(orderBy, limit), RankCacheTTL, func() ([]*model.Article, error) {
 		return GetRankArticles(orderBy, limit)
 	})
@@ -132,7 +128,6 @@ func SearchArticlesCached(keyword string, offset, limit int) ([]*model.Article, 
 	if !utils.IsRedisEnabled() {
 		return SearchArticles(keyword, offset, limit)
 	}
-
 	return getCached(searchCacheKey(keyword, offset, limit), SearchCacheTTL, func() ([]*model.Article, error) {
 		return SearchArticles(keyword, offset, limit)
 	})
@@ -143,7 +138,6 @@ func GetSearchCountCached(keyword string) (int, error) {
 	if !utils.IsRedisEnabled() {
 		return GetSearchCount(keyword)
 	}
-
 	return getCached(searchCountCacheKey(keyword), SearchCacheTTL, func() (int, error) {
 		return GetSearchCount(keyword)
 	})
@@ -158,7 +152,6 @@ func GetLangtailsBySourceIDCached(sourceID int) ([]*model.Langtail, error) {
 	if !utils.IsRedisEnabled() {
 		return GetLangtailsBySourceID(sourceID)
 	}
-	// 缓存1小时
 	return getCached(langtailCacheKey(sourceID), 1*time.Hour, func() ([]*model.Langtail, error) {
 		return GetLangtailsBySourceID(sourceID)
 	})
