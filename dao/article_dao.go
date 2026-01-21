@@ -455,3 +455,26 @@ func IncArticleVisit(id int) error {
 
 	return err
 }
+
+// GetAllArticlesForSitemap 获取所有文章用于生成 sitemap
+// 只返回必要的字段：ArticleID, LastUpdate
+func GetAllArticlesForSitemap() ([]*model.Article, error) {
+	// 仅选择 display=0 (显示) 的文章
+	sqlStr := "SELECT articleid, lastupdate FROM jieqi_article_article WHERE display = 0"
+	rows, err := utils.Db.Query(sqlStr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []*model.Article
+	for rows.Next() {
+		art := &model.Article{}
+		err := rows.Scan(&art.ArticleID, &art.LastUpdate)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, art)
+	}
+	return articles, nil
+}

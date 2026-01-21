@@ -103,7 +103,9 @@ type LinkConfig struct {
 type SiteConfig struct {
 	SiteName       string `json:"sitename"`
 	Domain         string `json:"domain"`
+	MobileDomain   string `json:"mobile_domain"` // 移动端域名
 	Template       string `json:"template"`
+	MobileTemplate string `json:"mobile_template"`  // 移动端模板
 	AdminPath      string `json:"admin_path"`       // 后台管理路径，默认 /admin
 	SearchLimit    int    `json:"search_limit"`     // 搜索限制时间（秒）
 	IndexCache     bool   `json:"index_cache"`      // 是否开启首页缓存

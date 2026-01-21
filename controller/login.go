@@ -54,6 +54,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				Name:     "user_session",
 				Value:    sessID,
 				HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
 				Path:     "/",
 			}
 			// 发送Cookie

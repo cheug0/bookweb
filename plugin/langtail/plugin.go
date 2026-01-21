@@ -1,7 +1,7 @@
 package langtail
 
 import (
-	"bookweb/controller"
+	"bookweb/service"
 	"log"
 	"net/http"
 )
@@ -27,7 +27,7 @@ func (p *Plugin) Init(cfg map[string]interface{}) error {
 	SetConfig(p.config)
 
 	// 注册长尾词更新回调函数
-	controller.LangtailUpdateFunc = func(sourceID int, sourceName string, cycleDays int) {
+	service.LangtailUpdateFunc = func(sourceID int, sourceName string, cycleDays int) {
 		_ = UpdateLangtailsIfNeeded(sourceID, sourceName, cycleDays)
 	}
 

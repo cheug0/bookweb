@@ -91,6 +91,8 @@ func SetAdminSessionCookie(w http.ResponseWriter, session *AdminSession) {
 		Value:    session.ID,
 		Path:     adminPath,
 		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 		MaxAge:   int(AdminSessionExpiry.Seconds()),
 	})
 }

@@ -6,38 +6,10 @@ import (
 	"bookweb/utils"
 	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"time"
 )
-
-// funcMap 定义模版辅助函数
-var funcMap = template.FuncMap{
-	"plus":  func(a, b int) int { return a + b },
-	"minus": func(a, b int) int { return a - b },
-	"formatSize": func(size int) string {
-		if size >= 10000 {
-			return fmt.Sprintf("%.1f万", float64(size)/10000.0)
-		}
-		return strconv.Itoa(size)
-	},
-	"formatDate": func(t int64) string {
-		if t == 0 {
-			return "-"
-		}
-		return time.Unix(t, 0).Format("2006-01-02")
-	},
-	"cover": func(id int) string {
-		return utils.GetCoverPath(id)
-	},
-	"bookUrl": func(id int) string {
-		return utils.BookUrl(id)
-	},
-	"readUrl": func(aid, cid int) string {
-		return utils.ReadUrl(aid, cid)
-	},
-}
 
 // SortList 处理小说分类页面请求
 func SortList(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +104,7 @@ func SortList(w http.ResponseWriter, r *http.Request) {
 
 	// 5. 渲染页面
 	var buf bytes.Buffer
-	t := utils.GetTemplate("sort.html")
+	t := GetRenderTemplate(w, r, "sort.html")
 	if t == nil {
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return

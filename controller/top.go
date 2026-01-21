@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bookweb/service"
-	"bookweb/utils"
 	"log"
 	"net/http"
 )
@@ -21,7 +20,7 @@ func Top(w http.ResponseWriter, r *http.Request) {
 
 	data.Add("Top", topData)
 
-	t := utils.GetTemplate("top.html")
+	t := GetRenderTemplate(w, r, "top.html")
 	if t == nil {
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return

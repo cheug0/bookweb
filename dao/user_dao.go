@@ -5,21 +5,24 @@ import (
 	"bookweb/utils"
 	"database/sql"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // CheckUserNameAndPassword 验证用户名和密码
 func CheckUserNameAndPassword(username string, password string) (*model.User, error) {
-	var row *sql.Row
-	if stmtGetUserByLogin != nil {
-		row = stmtGetUserByLogin.QueryRow(username, password)
-	} else {
-		sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where username = ? and password = ?"
-		row = utils.Db.QueryRow(sqlStr, username, password)
-	}
+	// 先根据用户名查询用户
+	sqlStr := "select id,username,password,email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') from users where username = ?"
+	row := utils.Db.QueryRow(sqlStr, username)
 	user := &model.User{}
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &user.LastLoginTime, &user.CurrentLoginTime)
 	if err != nil {
 		return nil, err
+	}
+	// 使用 bcrypt 验证密码
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("密码错误")
 	}
 	return user, nil
 }
@@ -36,10 +39,15 @@ func CheckUserName(username string) (bool, error) {
 	return count > 0, nil
 }
 
-// SaveUser 保存用户
+// SaveUser 保存用户 (密码使用 bcrypt 加密)
 func SaveUser(username string, password string, email string) error {
+	// 使用 bcrypt 加密密码
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("密码加密失败: %v", err)
+	}
 	sqlStr := "insert into users(username,password,email) values(?,?,?)"
-	_, err := utils.Db.Exec(sqlStr, username, password, email)
+	_, err = utils.Db.Exec(sqlStr, username, string(hashedPassword), email)
 	if err != nil {
 		fmt.Println("执行错误：", err)
 		return err
@@ -47,10 +55,20 @@ func SaveUser(username string, password string, email string) error {
 	return nil
 }
 
-// UpdateUser 更新用户信息
+// UpdateUser 更新用户信息 (如果修改密码则使用 bcrypt 加密)
 func UpdateUser(user *model.User) error {
+	// 检查密码是否是新密码（非 bcrypt hash 格式，长度通常 < 60）
+	passwordToSave := user.Password
+	if len(user.Password) < 60 {
+		// 不是 bcrypt hash，需要加密
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("密码加密失败: %v", err)
+		}
+		passwordToSave = string(hashedPassword)
+	}
 	sqlStr := "update users set password = ?, email = ? where id = ?"
-	_, err := utils.Db.Exec(sqlStr, user.Password, user.Email, user.Id)
+	_, err := utils.Db.Exec(sqlStr, passwordToSave, user.Email, user.Id)
 	if err != nil {
 		fmt.Println("执行错误：", err)
 		return err

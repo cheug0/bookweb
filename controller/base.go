@@ -4,6 +4,7 @@ import (
 	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/model"
+	"bookweb/utils"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -163,4 +164,45 @@ func GetTplPathOrError(w http.ResponseWriter, name string) (string, bool) {
 		return "", false
 	}
 	return path, true
+}
+
+// IsMobile 判断是否为移动端访问
+// 优先级：
+// 1. 域名匹配 (Config.MobileDomain)
+// 2. User-Agent 包含移动端标识
+func IsMobile(r *http.Request) bool {
+	// 1. 域名检测 (最高优先级)
+	if cfg := config.GetGlobalConfig(); cfg != nil && cfg.Site.MobileDomain != "" {
+		// 移除端口号进行比较 (兼容本地开发 localhost:8080)
+		host := r.Host
+		if strings.Contains(host, ":") {
+			host = strings.Split(host, ":")[0]
+		}
+		mobileDomain := cfg.Site.MobileDomain
+		if strings.Contains(mobileDomain, ":") {
+			mobileDomain = strings.Split(mobileDomain, ":")[0]
+		}
+		if host == mobileDomain {
+			return true
+		}
+	}
+
+	// 2. UA 检测
+	ua := strings.ToLower(r.UserAgent())
+	mobileKeywords := []string{"mobile", "android", "iphone", "ipad", "phone", "wap"}
+	for _, k := range mobileKeywords {
+		if strings.Contains(ua, k) {
+			return true
+		}
+	}
+	return false
+}
+
+// GetRenderTemplate 根据设备类型获取合适的模板
+// 如果是移动端且配置了移动模板，返回移动模板；否则返回 PC 模板
+func GetRenderTemplate(w http.ResponseWriter, r *http.Request, name string) *template.Template {
+	if IsMobile(r) {
+		return utils.GetMobileTemplate(name)
+	}
+	return utils.GetTemplate(name)
 }

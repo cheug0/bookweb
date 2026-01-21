@@ -7,6 +7,7 @@ import (
 	"bookweb/plugin/ads"
 	"bookweb/plugin/db_optimizer"
 	"bookweb/plugin/langtail"
+	"bookweb/plugin/sitemap"
 	"bookweb/router"
 	"bookweb/service"
 	"bookweb/utils"
@@ -66,6 +67,7 @@ func main() {
 	pluginManager.Register(langtail.New())
 	pluginManager.Register(ads.New())
 	pluginManager.Register(db_optimizer.New())
+	pluginManager.Register(sitemap.New())
 	if err := pluginManager.InitAll("config/plugins.conf"); err != nil {
 		log.Printf("Warning: Failed to init plugins: %v", err)
 	}

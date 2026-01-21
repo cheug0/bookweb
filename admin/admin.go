@@ -163,7 +163,9 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			// 保存基本设置和存储设置
 			cfg.Site.SiteName = r.FormValue("sitename")
 			cfg.Site.Domain = r.FormValue("domain")
+			cfg.Site.MobileDomain = r.FormValue("mobile_domain")
 			cfg.Site.Template = r.FormValue("template")
+			cfg.Site.MobileTemplate = r.FormValue("mobile_template")
 			if limit, err := strconv.Atoi(r.FormValue("search_limit")); err == nil {
 				cfg.Site.SearchLimit = limit
 			}

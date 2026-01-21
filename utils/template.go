@@ -64,7 +64,9 @@ var CommonFuncMap = template.FuncMap{
 // InitTemplates 初始化所有模板（启动时调用）
 func InitTemplates() error {
 	tpl := config.GlobalConfig.Site.Template
+	mobileTpl := config.GlobalConfig.Site.MobileTemplate
 	tplDir := "template/" + tpl
+	mobileTplDir := "template/" + mobileTpl
 
 	templates := []struct {
 		name  string
@@ -86,7 +88,11 @@ func InitTemplates() error {
 	templateMu.Lock()
 	defer templateMu.Unlock()
 
+	// 清空旧缓存（避免 Reload 时残留）
+	templateCache = make(map[string]*template.Template)
+
 	for _, t := range templates {
+		// 1. 加载 PC 模板
 		var files []string
 		for _, f := range t.files {
 			path := filepath.Join(tplDir, f)
@@ -105,20 +111,67 @@ func InitTemplates() error {
 			tmpl := template.New(t.name).Funcs(CommonFuncMap)
 			tmpl, err := tmpl.ParseFiles(files...)
 			if err != nil {
-				return fmt.Errorf("error parsing template %s: %v", t.name, err)
+				return fmt.Errorf("error parsing PC template %s: %v", t.name, err)
 			}
 			templateCache[t.name] = tmpl
-			fmt.Printf("Template cached: %s\n", t.name)
+			fmt.Printf("PC Template cached: %s\n", t.name)
+		}
+
+		// 2. 加载移动端模板 (如果配置了)
+		if mobileTpl != "" {
+			var mFiles []string
+			for _, f := range t.files {
+				// 优先从移动端模板目录加载
+				path := filepath.Join(mobileTplDir, f)
+				if _, err := os.Stat(path); err == nil {
+					mFiles = append(mFiles, path)
+				} else {
+					// 其次尝试 PC 模板 (降级)
+					path = filepath.Join(tplDir, f)
+					if _, err := os.Stat(path); err == nil {
+						mFiles = append(mFiles, path)
+					} else {
+						// 最后尝试 default
+						defaultPath := filepath.Join("template/default", f)
+						if _, err := os.Stat(defaultPath); err == nil {
+							mFiles = append(mFiles, defaultPath)
+						}
+					}
+				}
+			}
+
+			if len(mFiles) > 0 {
+				mTmpl := template.New(t.name).Funcs(CommonFuncMap)
+				mTmpl, err := mTmpl.ParseFiles(mFiles...)
+				if err != nil {
+					// 移动端模板加载失败不应该阻断启动，打日志即可
+					fmt.Printf("Warning: error parsing Mobile template %s: %v\n", t.name, err)
+				} else {
+					templateCache["mobile/"+t.name] = mTmpl
+					fmt.Printf("Mobile Template cached: mobile/%s\n", t.name)
+				}
+			}
 		}
 	}
 
 	return nil
 }
 
-// GetTemplate 获取预编译的模板
+// GetTemplate 获取 PC 预编译模板
 func GetTemplate(name string) *template.Template {
 	templateMu.RLock()
 	defer templateMu.RUnlock()
+	return templateCache[name]
+}
+
+// GetMobileTemplate 获取移动端预编译模板
+func GetMobileTemplate(name string) *template.Template {
+	templateMu.RLock()
+	defer templateMu.RUnlock()
+	if t, ok := templateCache["mobile/"+name]; ok {
+		return t
+	}
+	// 如果没有移动端专属缓存，回退到 PC 模板
 	return templateCache[name]
 }
 

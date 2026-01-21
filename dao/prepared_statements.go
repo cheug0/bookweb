@@ -23,7 +23,6 @@ var (
 	stmtGetSortByID *sql.Stmt
 
 	// User 相关
-	stmtGetUserByLogin    *sql.Stmt
 	stmtGetUserByUsername *sql.Stmt
 	stmtGetUserByID       *sql.Stmt
 
@@ -49,8 +48,6 @@ const (
 	sqlGetAllSorts = `SELECT sortid, weight, caption, shortname FROM sort ORDER BY weight ASC`
 
 	sqlGetSortByID = `SELECT sortid, weight, caption, shortname FROM sort WHERE sortid = ?`
-
-	sqlGetUserByLogin = `SELECT id, username, password, email, IFNULL(last_login_time, ''), IFNULL(current_login_time, '') FROM users WHERE username = ? AND password = ?`
 
 	sqlGetUserByUsername = `SELECT id, username, password, email FROM users WHERE username = ?`
 
@@ -111,11 +108,6 @@ func InitPreparedStatements() error {
 	}
 
 	// User 相关
-	stmtGetUserByLogin, err = db.Prepare(sqlGetUserByLogin)
-	if err != nil {
-		return logPrepareError("GetUserByLogin", err)
-	}
-
 	stmtGetUserByUsername, err = db.Prepare(sqlGetUserByUsername)
 	if err != nil {
 		return logPrepareError("GetUserByUsername", err)
@@ -152,7 +144,7 @@ func ClosePreparedStatements() {
 		stmtGetArticleByID, stmtGetChaptersByArticle, stmtGetVisitArticles,
 		stmtGetChapterByID, stmtGetPrevChapterID, stmtGetNextChapterID,
 		stmtGetAllSorts, stmtGetSortByID,
-		stmtGetUserByLogin, stmtGetUserByUsername, stmtGetUserByID,
+		stmtGetUserByUsername, stmtGetUserByID,
 		stmtGetBookcaseByUser, stmtGetBookmarkByUser,
 	}
 	for _, stmt := range stmts {

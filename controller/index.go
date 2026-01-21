@@ -6,40 +6,9 @@ import (
 	"bookweb/model"
 	"bookweb/utils"
 	"bytes"
-	"fmt"
-	"html/template"
 	"net/http"
-	"strconv"
 	"time"
 )
-
-// indexFuncMap 首页模版函数
-var indexFuncMap = template.FuncMap{
-	"plus":  func(a, b int) int { return a + b },
-	"minus": func(a, b int) int { return a - b },
-	"formatSize": func(size int) string {
-		if size >= 10000 {
-			return fmt.Sprintf("%.1f万", float64(size)/10000.0)
-		}
-		return strconv.Itoa(size)
-	},
-	"formatDate": func(t int64) string {
-		if t == 0 {
-			return "-"
-		}
-		// 首页通常只显示 月-日
-		return time.Unix(t, 0).Format("01-02")
-	},
-	"cover": func(id int) string {
-		return utils.GetCoverPath(id)
-	},
-	"bookUrl": func(id int) string {
-		return utils.BookUrl(id)
-	},
-	"readUrl": func(aid, cid int) string {
-		return utils.ReadUrl(aid, cid)
-	},
-}
 
 // categoryBlock 分类块数据结构
 type categoryBlock struct {
@@ -97,7 +66,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Add("SortMap", sortMap).
 		Add("Links", config.GetGlobalConfig().Links)
 
-	t := utils.GetTemplate("index.html")
+	t := GetRenderTemplate(w, r, "index.html")
 	if t == nil {
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return

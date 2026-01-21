@@ -29,13 +29,24 @@
             </div>
 
             <div class="form-row">
-                <label class="form-label">domain</label>
+                <label class="form-label">PC端域名</label>
                 <div class="form-content">
                     <div class="form-control-wrapper">
                         <!-- Assumed field or reusing Domain for now if exact mapping unclear, keeping strict to current struct -->
                         <input type="text" name="domain" value="{{.Config.Site.Domain}}" class="form-control">
                     </div>
-                    <span class="form-help">绑定本站域名</span>
+                    <span class="form-help">绑定PC端域名</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">移动端域名</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="text" name="mobile_domain" value="{{.Config.Site.MobileDomain}}"
+                            class="form-control">
+                    </div>
+                    <span class="form-help">绑定移动端域名 (如 m.example.com)，识别后自动切换模版</span>
                 </div>
             </div>
 
@@ -62,13 +73,24 @@
             </div>
 
             <div class="form-row">
-                <label class="form-label">模板主题</label>
+                <label class="form-label">PC端模板</label>
                 <div class="form-content">
                     <div class="form-control-wrapper">
                         <input type="text" name="template" value="{{.Config.Site.Template}}" class="form-control"
                             placeholder="html">
                     </div>
-                    <span class="form-help">模板文件夹名称 (默认: html)</span>
+                    <span class="form-help">PC端模板文件夹名称 (默认: html)</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">移动端模板</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="text" name="mobile_template" value="{{.Config.Site.MobileTemplate}}"
+                            class="form-control" placeholder="html_wap">
+                    </div>
+                    <span class="form-help">移动端模板文件夹名称 (留空则使用PC模板)</span>
                 </div>
             </div>
 

@@ -4,10 +4,8 @@ import (
 	"bookweb/dao"
 	"bookweb/model"
 	"bookweb/service"
-	"bookweb/utils"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 )
 
@@ -32,21 +30,10 @@ func UserCenter(w http.ResponseWriter, r *http.Request) {
 		// But better to just handle error gracefully.
 	}
 
-	tPath, ok := GetTplPathOrError(w, "user_center.html")
-	if !ok {
-		return
-	}
-	t := template.New("user_center.html").Funcs(template.FuncMap{
-		"bookUrl": func(id int) string {
-			return utils.BookUrl(id)
-		},
-		"readUrl": func(aid, cid int) string {
-			return utils.ReadUrl(aid, cid)
-		},
-	})
-	t, err = t.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
-		http.Error(w, "解析模板失败: "+err.Error(), http.StatusInternalServerError)
+	// 使用预编译模板
+	t := GetRenderTemplate(w, r, "user_center.html")
+	if t == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
 

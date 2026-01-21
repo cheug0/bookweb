@@ -3,7 +3,6 @@ package controller
 import (
 	"bookweb/config"
 	"bookweb/dao"
-	"bookweb/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -82,7 +81,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		Add("Pages", generatePageList(currentPage, totalPage))
 
 	// 6. 渲染页面
-	t := utils.GetTemplate("search.html")
+	t := GetRenderTemplate(w, r, "search.html")
 	if t == nil {
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return

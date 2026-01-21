@@ -40,6 +40,7 @@
                         <td style="color: #666; font-size: 13px;">
                             {{if eq $name "langtail"}}长尾关键词插件 - 自动抓取搜索建议词优化SEO{{end}}
                             {{if eq $name "ads"}}广告管理插件 - 自定义广告位，模板标签调用{{end}}
+                            {{if eq $name "sitemap"}}网站地图生成插件 - 自动生成 sitemap.xml 供搜索引擎索引{{end}}
                         </td>
                         <td>
                             {{if index $cfg "enabled"}}
@@ -152,6 +153,167 @@
         <div style="border: 0px solid #ddd; border-radius: 4px; overflow: hidden;">
             <iframe src="{{$adminPath}}/plugin/db_optimizer" style="width: 100%; height: 600px; border: none;"></iframe>
         </div>
+        {{else if eq $name "langtail"}}
+        <!-- Langtail 插件配置界面 -->
+        <form id="form-{{$name}}" onsubmit="savePluginConfig(event, '{{$name}}')">
+            <div class="alert alert-info" style="margin-bottom: 20px;">
+                <strong><i class="fa fa-paw"></i> 长尾词插件配置</strong>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">路由规则 (route_pattern)</label>
+                    </div>
+                    <input type="text" class="form-control config-input" data-key="route_pattern"
+                        value='{{index $cfg "route_pattern"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">长尾词详情页 URL 规则，需包含 :lid 参数，如 /books/:lid
+                    </p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">抓取周期 (fetch_cycle_days)</label>
+                    </div>
+                    <input type="number" class="form-control config-input" data-key="fetch_cycle_days"
+                        value='{{index $cfg "fetch_cycle_days"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">每隔多少天重新抓取一次长尾词数据（默认 7 天）</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">缓存时间 (cache_seconds)</label>
+                    </div>
+                    <input type="number" class="form-control config-input" data-key="cache_seconds"
+                        value='{{index $cfg "cache_seconds"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">生成的长尾词页面缓存时间，单位秒（默认 3600 秒）</p>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px 50px; font-size: 16px;">保存配置</button>
+            </div>
+        </form>
+
+        {{else if eq $name "sitemap"}}
+        <!-- Sitemap 插件配置界面 -->
+        <form id="form-{{$name}}" onsubmit="savePluginConfig(event, '{{$name}}')">
+            <div class="alert alert-info" style="margin-bottom: 20px;">
+                <strong><i class="fa fa-sitemap"></i> Sitemap 配置</strong>
+                <span style="font-size: 13px; margin-left: 10px;">Sitemap 地址: <a href="/sitemap/sitemap.xml"
+                        target="_blank">/sitemap/sitemap.xml</a></span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">输出目录 (output_path)</label>
+                    </div>
+                    <input type="text" class="form-control config-input" data-key="output_path"
+                        value='{{index $cfg "output_path"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">Sitemap 文件生成的存放目录，通常为 static/sitemap</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">更新周期 (regenerate_hours)</label>
+                    </div>
+                    <input type="number" class="form-control config-input" data-key="regenerate_hours"
+                        value='{{index $cfg "regenerate_hours"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">自动重新生成 Sitemap 的周期，单位小时（默认 24 小时）</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">单文件最大 URL
+                            (max_urls_per_file)</label>
+                    </div>
+                    <input type="number" class="form-control config-input" data-key="max_urls_per_file"
+                        value='{{index $cfg "max_urls_per_file"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">单个 XML 文件包含的最大 URL 数量，超过将自动分割（推荐 50000）
+                    </p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">更新频率 (changefreq)</label>
+                    </div>
+                    <select class="form-control config-input" data-key="changefreq"
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                        <option value="always" {{if eq (index $cfg "changefreq" ) "always" }}selected{{end}}>always
+                        </option>
+                        <option value="hourly" {{if eq (index $cfg "changefreq" ) "hourly" }}selected{{end}}>hourly
+                        </option>
+                        <option value="daily" {{if eq (index $cfg "changefreq" ) "daily" }}selected{{end}}>daily
+                        </option>
+                        <option value="weekly" {{if eq (index $cfg "changefreq" ) "weekly" }}selected{{end}}>weekly
+                        </option>
+                        <option value="monthly" {{if eq (index $cfg "changefreq" ) "monthly" }}selected{{end}}>monthly
+                        </option>
+                        <option value="yearly" {{if eq (index $cfg "changefreq" ) "yearly" }}selected{{end}}>yearly
+                        </option>
+                        <option value="never" {{if eq (index $cfg "changefreq" ) "never" }}selected{{end}}>never
+                        </option>
+                    </select>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">告诉搜索引擎页面的更新频率</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label style="font-weight: bold; font-size: 14px; color: #333;">权重 (priority)</label>
+                    </div>
+                    <input type="number" step="0.1" min="0.0" max="1.0" class="form-control config-input"
+                        data-key="priority" value='{{index $cfg "priority"}}'
+                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">页面权重，范围 0.0 - 1.0（默认 0.8）</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label
+                            style="font-weight: bold; font-size: 14px; color: #333; display: flex; align-items: center; gap: 10px;">
+                            包含小说页 (include_books)
+                            <input type="checkbox" style="width: auto;" class="config-input" data-key="include_books"
+                                data-type="bool" {{if index $cfg "include_books" }}checked{{end}}>
+                        </label>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">是否在 Sitemap 中包含小说信息页 URL</p>
+                </div>
+
+                <div class="config-item"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <label
+                            style="font-weight: bold; font-size: 14px; color: #333; display: flex; align-items: center; gap: 10px;">
+                            包含章节页 (include_chapters)
+                            <input type="checkbox" style="width: auto;" class="config-input" data-key="include_chapters"
+                                data-type="bool" {{if index $cfg "include_chapters" }}checked{{end}}>
+                        </label>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">是否包含章节阅读页（URL 数量极大，建议关闭）</p>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px 50px; font-size: 16px;">保存配置</button>
+            </div>
+        </form>
+
         {{else}}
         <!-- 通用插件配置界面 -->
         <form id="form-{{$name}}" onsubmit="savePluginConfig(event, '{{$name}}')">
