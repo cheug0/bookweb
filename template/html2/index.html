@@ -1,0 +1,109 @@
+{{template "head.html" .}}
+
+<div class="topa">
+    <script>topa();</script>
+</div>
+<div id="main">
+    <div class="coverecom mbottom">
+        <div class="tabstit_index">
+            <span class="label"></span><em>好书推荐</em>
+        </div>
+        <div class="recombook">
+            {{range .TopArticles}}
+            <dl>
+                <dt><a href="{{bookUrl .ArticleID}}"><img class="lazy" src="{{cover .ArticleID}}" alt="{{.ArticleName}}"
+                            height="158" width="128"></a></dt>
+                <dd><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></dd>
+                <dd class="tit"><span>作者：</span>{{.Author}}</dd>
+                <dd class="name"> {{.Intro}}</dd>
+            </dl>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- 八个分类列表 -->
+    {{range $i, $block := .Blocks}}
+    {{if eq (mod $i 2) 0}}
+    <div class="coverecom w_440 left mbottom">
+        {{else}}
+        <div class="coverecom w_440 right mbottom">
+            {{end}}
+            <div class="tabstit"><span class="label"></span><em><a
+                        href="{{sortUrl $block.Sort.SortID 1}}">{{$block.Sort.Caption}}</a></em></div>
+            <div class="recomclass">
+                {{if $block.Articles}}
+                {{/* 显示前两本带封面 */}}
+                {{range (slice $block.Articles 0 (min (len $block.Articles) 2))}}
+                <dl>
+                    <dt><a href="{{bookUrl .ArticleID}}"><img class="lazy" src="{{cover .ArticleID}}"
+                                alt="{{.ArticleName}}"></a></dt>
+                    <dd><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></dd>
+                    <dd class="tit">作者：{{.Author}}</dd>
+                    <dd class="name"> {{.Intro}}</dd>
+                </dl>
+                {{end}}
+
+                {{/* 剩余显示列表 */}}
+                <ul>
+                    {{if gt (len $block.Articles) 2}}
+                    {{range (slice $block.Articles 2)}}
+                    <li><em>{{.Author}}</em><span>[{{$block.Sort.Caption}}]</span><a
+                            href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></li>
+                    {{end}}
+                    {{end}}
+                </ul>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <div class="clearfix"></div>
+
+    </div> <!-- main -->
+
+    <div id="index_last">
+        <div class="list_center w_770 left">
+            <div class="update_title">
+                <span class="update_icon">更新列表</span>
+
+            </div>
+            <div class="update_list">
+                <ul>
+                    {{range .LatestUpdates}}
+                    <li><span class="recnums_r">[{{index $.SortMap .SortID}}]</span><span class="r_spanone"><a
+                                href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></span><span class="r_spantwo"><a
+                                href="{{readUrl .ArticleID .LastChapterID}}">{{.LastChapter}}</a></span><span
+                            class="r_spanthree">{{date .LastUpdate "01-02"}}</span><span
+                            class="r_spanfour">{{.Author}}</span></li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+        <div class="list_center w_200 right">
+            <div class="update_title">
+                <span class="update_icon">新书推荐</span>
+            </div>
+            <div class="bookList">
+                <ul>
+                    {{range .NewArticles}}
+                    <li><strong>{{.Author}}</strong><span class="resort">[{{index $.SortMap .SortID}}]</span><a
+                            href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    <div id="footer" class="dispc">
+        <div class="friendLink">
+            <h3 class="linkMenu">友情链接</h3>
+            <div class="linkInfo">
+                {{range .Links}}
+                <a href="{{.Url}}" target="_blank">{{.Name}}</a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    {{template "foot.html" .}}

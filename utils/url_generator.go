@@ -64,3 +64,28 @@ func LangtailUrl(langID int) string {
 	}
 	return strings.Replace(pattern, ":lid", strconv.Itoa(langID), 1)
 }
+
+// SortUrl 根据路由配置生成分类列表页 URL
+func SortUrl(sortID, page int) string {
+	cfg := config.GetRouterConfig()
+	if page < 1 {
+		page = 1
+	}
+
+	defaultUrl := "/sort_" + strconv.Itoa(sortID) + "_" + strconv.Itoa(page) + ".html"
+
+	if cfg == nil {
+		return defaultUrl
+	}
+	pattern := cfg.GetRoute("sort")
+	if pattern == "" {
+		return defaultUrl
+	}
+
+	// 动态路由替换
+	sidStr := strconv.Itoa(sortID)
+	pageStr := strconv.Itoa(page)
+
+	url := strings.Replace(pattern, ":sid", sidStr, 1)
+	return strings.Replace(url, ":page", pageStr, 1)
+}

@@ -64,6 +64,7 @@ func GetCommonData(r *http.Request) CommonData {
 		sortLinks = append(sortLinks, map[string]string{
 			"Caption": s.Caption,
 			"Url":     url,
+			"Id":      fmt.Sprintf("%d", s.SortID),
 		})
 	}
 	data["SortLinks"] = sortLinks

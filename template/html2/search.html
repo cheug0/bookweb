@@ -1,0 +1,83 @@
+{{template "head.html" .}}
+
+<div id="main">
+    <div id="maininfo">
+        <div class="coverecom w_770 left">
+            <div class="tabstit">
+                <span class="label"></span>
+                <a href="/">{{.SiteName}}</a>
+                <i>＞</i>
+                <em>搜索“<span class="red">{{.Keyword}}</span>”的结果</em>
+            </div>
+
+            <div id="sitebox">
+                {{range .Articles}}
+                <dl>
+                    <dt><a href="{{bookUrl .ArticleID}}"><img src="{{cover .ArticleID}}" alt="{{.ArticleName}}"></a>
+                    </dt>
+                    <dd>
+                        <h3><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></h3>
+                    </dd>
+                    <dd class="tit">
+                        <span>作者：{{.Author}}</span>
+                        <span>状态：{{if eq .FullFlag 1}}全本{{else}}连载{{end}}</span>
+                        <span>更新：{{date .LastUpdate "2006-01-02"}}</span>
+                        <span>字数：{{formatSize .Size}}</span>
+                    </dd>
+                    <dd class="name">{{.Intro}}</dd>
+                    <dd class="abbr">
+                        <a href="{{bookUrl .ArticleID}}">点击阅读</a>
+                        <a href="javascript:addbookcase('{{.ArticleID}}','{{.ArticleName}}')">加入书架</a>
+                        <a href="{{bookUrl .ArticleID}}">收藏本书</a>
+                    </dd>
+                </dl>
+                {{else}}
+                <div style="text-align: center; padding: 50px 0;">
+                    <p style="color: #999; font-size: 16px;">抱歉，没找到与“<span class="red">{{.Keyword}}</span>”相关的作品</p>
+                </div>
+                {{end}}
+            </div>
+
+            <!-- 分页 -->
+            {{if gt .TotalPage 1}}
+            <div class="pages">
+                {{if gt .Page 1}}
+                <a href="/search?key={{.Keyword}}&page={{minus .Page 1}}" class="prev">上一页</a>
+                {{end}}
+
+                {{range .Pages}}
+                {{if eq . $.Page}}
+                <strong>{{.}}</strong>
+                {{else}}
+                <a href="/search?key={{.Keyword}}&page={{.}}">{{.}}</a>
+                {{end}}
+                {{end}}
+
+                {{if lt .Page .TotalPage}}
+                <a href="/search?key={{.Keyword}}&page={{add .Page 1}}" class="next">下一页</a>
+                {{end}}
+            </div>
+            {{end}}
+
+        </div>
+
+        <div class="list_center w_200 right">
+            <div class="update_title">
+                <span class="update_icon">热门小说</span>
+            </div>
+            <div class="hotlist">
+                <ul>
+                    {{if .HotArticles}}
+                    {{range (slice .HotArticles 0 (min (len .HotArticles) 10))}}
+                    <li><strong>{{.Author}}</strong><span>[热门]</span><a
+                            href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></li>
+                    {{end}}
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</div>
+
+{{template "foot.html" .}}

@@ -1,0 +1,197 @@
+{{template "head.html" .}}
+
+<div id="main">
+    <div id="maininfo">
+        <div class="coverecom w_770 left">
+            <div class="tabstit">
+                <span class="label"></span>
+                <a href="/">{{.SiteName}}</a>
+                <i>＞</i>
+                <em>排行榜</em>
+            </div>
+
+            <div class="top-ranks">
+                <!-- 总点击榜 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">总点击榜</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.AllVisit}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+
+                <!-- 月点击榜 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">月点击榜</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.MonthVisit}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+
+                <!-- 周点击榜 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">周点击榜</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.WeekVisit}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+
+                <!-- 总推荐榜 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">总推荐榜</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.AllVote}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+
+                <!-- 最新入库 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">最新入库</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.PostDate}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+
+                <!-- 最近更新 -->
+                <div class="rank-section">
+                    <h3 class="rank-title">最近更新</h3>
+                    <ul class="rank-list">
+                        {{range $i, $art := .Top.NewUpdate}}
+                        <li><span class="num">{{plus $i 1}}</span><a
+                                href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="list_center w_200 right">
+            <div class="update_title">
+                <span class="update_icon">热门小说</span>
+            </div>
+            <div class="hotlist">
+                <ul>
+                    {{if .Top.AllVisit}}
+                    {{range (slice .Top.AllVisit 0 (min (len .Top.AllVisit) 10))}}
+                    <li><strong>{{.Author}}</strong><span>[热门]</span><a
+                            href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></li>
+                    {{end}}
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</div>
+
+<style>
+    .top-ranks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px 0;
+    }
+
+    .rank-section {
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 4px;
+        width: calc(33.33% - 14px);
+        box-sizing: border-box;
+    }
+
+    .rank-title {
+        background: #f7f7f7;
+        color: #333;
+        font-size: 16px;
+        padding: 10px 15px;
+        margin: 0;
+        border-bottom: 1px solid #e6e6e6;
+    }
+
+    .rank-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .rank-list li {
+        padding: 8px 15px;
+        border-bottom: 1px solid #f5f5f5;
+        display: flex;
+        align-items: center;
+    }
+
+    .rank-list li:last-child {
+        border-bottom: none;
+    }
+
+    .rank-list li a {
+        color: #444;
+        text-decoration: none;
+        font-size: 14px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .rank-list li a:hover {
+        color: #f99800;
+    }
+
+    .num {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        text-align: center;
+        background: #e0e0e0;
+        color: #666;
+        font-size: 12px;
+        border-radius: 3px;
+        margin-right: 10px;
+    }
+
+    .rank-list li:nth-child(1) .num {
+        background: #ff4d4f;
+        color: #fff;
+    }
+
+    .rank-list li:nth-child(2) .num {
+        background: #ff7a45;
+        color: #fff;
+    }
+
+    .rank-list li:nth-child(3) .num {
+        background: #ffc53d;
+        color: #fff;
+    }
+
+    @media screen and (max-width: 768px) {
+        .rank-section {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    $('.nav li:last-child').css('background', '#5E8E9E');
+</script>
+
+{{template "foot.html" .}}

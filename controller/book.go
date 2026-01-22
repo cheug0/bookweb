@@ -66,6 +66,13 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 获取分类 Map (用于 HotArticles 显示分类名)
+	sorts, _ := dao.GetAllSortsCached() // 假设已有或使用 GetAllSorts
+	sortMap := make(map[int]string)
+	for _, s := range sorts {
+		sortMap[s.SortID] = s.Caption
+	}
+
 	// 准备模版数据
 	tags := map[string]string{
 		"articlename": bookData.Article.ArticleName,
@@ -80,8 +87,10 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 		Add("LatestChapters", bookData.LatestChapters).
 		Add("ChapterCount", len(bookData.Chapters)).
 		Add("LatestArticles", bookData.LatestArticles).
+		Add("LatestArticles", bookData.LatestArticles).
 		Add("HotArticles", bookData.HotArticles).
-		Add("Langtails", bookData.Langtails)
+		Add("Langtails", bookData.Langtails).
+		Add("SortMap", sortMap)
 
 	// 使用 Buffer 捕获渲染结果以便缓存
 	var buf bytes.Buffer
@@ -156,6 +165,17 @@ func ChapterRead(w http.ResponseWriter, r *http.Request) {
 		Add("Chapter", chapter).
 		Add("PrevID", prevID).
 		Add("NextID", nextID)
+
+	// 获取分类名称
+	sorts, _ := dao.GetAllSortsCached()
+	sortName := ""
+	for _, s := range sorts {
+		if s.SortID == article.SortID {
+			sortName = s.Caption
+			break
+		}
+	}
+	data.Add("SortName", sortName)
 
 	t := GetRenderTemplate(w, r, "book_reader.html")
 	if t == nil {

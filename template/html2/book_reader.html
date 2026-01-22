@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>{{.Article.ArticleName}}-{{.Chapter.ChapterName}}_{{.SiteName}}</title>
+    <meta name="keywords" content="{{.Article.ArticleName}},{{.Chapter.ChapterName}}">
+    <meta name="description"
+        content="{{.Article.ArticleName}} is written by {{.Article.Author}}, this is {{.Chapter.ChapterName}}...">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+
+    <link rel="stylesheet" href="/tpl_static/css/reader.css">
+    <script src="/tpl_static/js/jquery.min.js"></script>
+    <script src="/tpl_static/js/jquery.cookie.js"></script>
+
+
+    <style id="antigravity-scroll-lock-style">
+        html:root body.antigravity-scroll-lock {
+            overflow: hidden !important;
+        }
+    </style>
+    <style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        html::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg6" id="readbg">
+
+    <div class="top">
+        <div class="bar">
+            <div class="chepnav">
+                <i>当前位置:</i><a href="/">{{.SiteName}}</a>&gt;<a
+                    href="{{sortUrl .Article.SortID 1}}">{{.SortName}}</a>&gt;<a
+                    href="{{bookUrl .Article.ArticleID}}">{{.Article.ArticleName}}</a>&gt;
+                <em>{{.Chapter.ChapterName}}</em>
+            </div>
+            <ul>
+                <div class="unloginl">
+                    <script>login();</script>
+                </div>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mlfy_main">
+
+        <div class="container">
+            <ul class="links">
+                <li><a
+                        href="javascript:addbookcase('{{.Article.ArticleID}}','{{.Article.ArticleName}}','{{.Chapter.ChapterID}}','{{.Chapter.ChapterName}}')">加入书架</a>
+                </li>
+            </ul>
+            <div class="mlfy_main_l"><i class="szk"><em class="icon-cog"></em>
+                    <z>阅读</z>设置
+                </i><i class="hid">（推荐配合 快捷键[F11] 进入全屏沉浸式阅读）</i></div>
+        </div>
+        <div class="mlfy_main_sz b2">
+            <p class="ml"><span class="txt">设置</span><span class="close">X</span></p>
+            <ul>
+                <li><span class="fl">阅读主题</span><i class="c1"></i><i class="c2"></i><i class="c3"></i><i
+                        class="c4"></i><i class="c5"></i><i class="c6 hover"></i><i class="c7"></i><i class="c8"></i>
+                </li>
+                <li class="hid"><span class="fl">正文字体</span><span class="zt hover">雅黑</span><span
+                        class="zt">宋体</span><span class="zt">楷体</span><span class="zt" title="方正启体简体">启体</span><span
+                        class="zt" title="思源黑体 CN">思源</span><span class="zt" title="苹方字体">苹方</span></li>
+                <li><span class="fl">字体大小</span><span class="dx dxl">A-</span><span class="dx dxc">20</span><span
+                        class="dx dxr">A+</span></li>
+                <li class="hid"><span class="fl">页面宽度</span>
+                    <p class="dx kdl"><span class="icon"></span><span class="fl">-</span></p>
+                    <p class="dx kdc">100%</p>
+                    <p class="dx kdr"><span class="icon"></span><span class="fl">+</span></p>
+                </li>
+            </ul>
+            <div class="btn-wrap"><a class="red-btn" href="javascript:">保存</a><a class="grey-btn"
+                    href="javascript:">取消</a></div>
+        </div>
+
+        <div id="mlfy_main_text">
+            <h1>{{.Chapter.ChapterName}}</h1>
+            <dt class="tp"></dt>
+            <dt class="kw"></dt>
+
+            <div id="TextContent" class="read-content">
+                {{.Chapter.Content | safe}}
+            </div>
+
+
+        </div>
+        <div class="mlfy_page">
+            <a
+                href="{{if ne .PrevID 0}}{{readUrl .Article.ArticleID .PrevID}}{{else}}javascript:alert('已经是第一章了');{{end}}">上一章</a>
+            <a href="{{bookUrl .Article.ArticleID}}">目录</a>
+            <a
+                href="javascript:addbookcase('{{.Article.ArticleID}}','{{.Article.ArticleName}}','{{.Chapter.ChapterID}}','{{.Chapter.ChapterName}}');">＋书签</a>
+            <a
+                href="{{if ne .NextID 0}}{{readUrl .Article.ArticleID .NextID}}{{else}}javascript:alert('已经是最后一章了');{{end}}">下一章</a>
+        </div>
+    </div>
+    {{template "foot.html" .}}

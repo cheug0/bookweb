@@ -69,6 +69,31 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 	// 静态文件 - 使用绝对路径确保文件可以正确加载
 	router.ServeFiles("/static/*filepath", http.Dir("static"))
 
+	// 模板静态文件 - 根据当前模板动态提供静态资源
+	// 路径: /tpl_static/*filepath -> template/{current_template}/static/*filepath
+	router.GET("/tpl_static/*filepath", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		filePath := ps.ByName("filepath")
+		tpl := config.GlobalConfig.Site.Template
+		mobileTpl := config.GlobalConfig.Site.MobileTemplate
+
+		// 检测是否为移动端访问
+		isMobile := controller.IsMobile(r)
+		templateName := tpl
+		if isMobile && mobileTpl != "" {
+			templateName = mobileTpl
+		}
+
+		// 构建模板静态文件完整路径
+		fullPath := "template/" + templateName + "/static" + filePath
+
+		// 检查文件是否存在，不存在则尝试回退到 PC 模板
+		if _, err := http.Dir(".").Open(fullPath); err != nil && isMobile && tpl != "" {
+			fullPath = "template/" + tpl + "/static" + filePath
+		}
+
+		http.ServeFile(w, r, fullPath)
+	})
+
 	// 后台管理路由
 	adminPath := config.GlobalConfig.Site.AdminPath
 	if adminPath == "" {

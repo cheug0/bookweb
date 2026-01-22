@@ -56,8 +56,29 @@ var CommonFuncMap = template.FuncMap{
 	},
 	"plus":  func(a, b int) int { return a + b },
 	"minus": func(a, b int) int { return a - b },
+	"add":   func(a, b int) int { return a + b },
+	"min": func(a, b int) int {
+		if a < b {
+			return a
+		}
+		return b
+	},
 	"transID": func(id int) int {
 		return EncodeID(id)
+	},
+	"mod": func(i, j int) int {
+		return i % j
+	},
+	"date": func(t int64, format string) string {
+		if t == 0 {
+			return "-"
+		}
+		// 简单处理常用格式，或者直接假设传入的是 Go layout
+		// 这里 "01-02" 也是 Go 的 Month-Day 格式
+		return time.Unix(t, 0).Format(format)
+	},
+	"sortUrl": func(sortID, page int) string {
+		return SortUrl(sortID, page)
 	},
 }
 

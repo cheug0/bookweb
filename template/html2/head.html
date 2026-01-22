@@ -1,0 +1,80 @@
+<html data-jetski-tab-id="1879654468">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <meta name="keywords" content="{{.Keywords}}">
+    <meta name="description" content="{{.Description}}">
+
+    <!-- header -->
+    <meta name="robots" content="all">
+    <meta name="googlebot" content="all">
+    <meta name="baiduspider" content="all">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="/tpl_static/img/favicon.ico" media="screen">
+    <link rel="stylesheet" href="/tpl_static/css/style.css">
+    <script src="/tpl_static/js/common.js"></script>
+    <script>
+        if (navigator.userAgent.toLowerCase().match(/(ipod|iphone|android|coolpad|mmp|smartphone|midp|wap|xoom|symbian|j2me|blackberry|wince)/i) != null) {
+            let url = window.location.href;
+            window.location = url.replace("//www", "//m");
+        }
+    </script>
+    <style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        html::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <style id="antigravity-scroll-lock-style">
+        html:root body.antigravity-scroll-lock {
+            overflow: hidden !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top">
+        <div class="bar">
+            <span class="loginSide"><a href="#" onclick="click_fav();return false;">收藏本站（ Ctrl+D ）</a></span>
+            <ul>
+                <script>login();</script>
+            </ul>
+        </div>
+    </div>
+    <div id="header">
+        <div class="wrap980">
+            <div class="logo"><a href="/"><img src="/tpl_static/img/logo.png" alt="{{.SiteName}}" style="display:none;">
+                    <h1>{{.SiteName}}</h1><span>{{.Domain}}</span>
+                </a></div>
+            <div class="search">
+                <form id="search" name="t_frmsearch" method="get" action="/search">
+                    <span class="searchBox"><input name="key" type="text" placeholder="关键字，如：重生"
+                            autocomplete="off"></span>
+                    <button type="submit" class="serBtn">搜索</button>
+                </form>
+
+                <div class="hot" style="margin-left:70px;">热搜：
+                    <a href="/search?key=我吃西红柿" target="_blank">我吃西红柿</a>
+                    <a href="/search?key=猫腻" target="_blank">猫腻</a>
+                    <a href="/search?key=唐家三少" target="_blank">唐家三少</a>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <div class="nav">
+            <ul>
+                <li><a id="shouye" href="/">首页</a></li>
+                {{range .SortLinks}}
+                <li><a id="sort{{.Id}}" href="{{.Url}}">{{.Caption}}</a></li>
+                {{end}}
+                <li><a id="top" href="{{.TopUrl}}">排行榜</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /header -->
+    <script>$('.nav li:nth-child(1)').css('background', '#5E8E9E');</script>
