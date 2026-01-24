@@ -48,3 +48,16 @@ func GetIDOr404(w http.ResponseWriter, r *http.Request, name string) (int, bool)
 	}
 	return val, true
 }
+
+// GetID 获取整数 ID，如果失败返回 0, false (不渲染 404)
+func GetID(w http.ResponseWriter, r *http.Request, name string) (int, bool) {
+	val, err := strconv.Atoi(utils.GetRouteParam(r, name))
+	if err != nil {
+		return 0, false
+	}
+	// 如果是小说 ID，进行解码
+	if name == "aid" || name == "articleid" {
+		val = utils.DecodeID(val)
+	}
+	return val, true
+}

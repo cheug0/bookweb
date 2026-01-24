@@ -1,27 +1,126 @@
 {{template "head.html" .}}
-<div class="container">
-    <div class="section">
-        <div class="auth_box">
-            <h2 class="auth_title">用户登录</h2>
+<style>
+    /* Universal Auth Layout - Namespaced */
+    .uni-container {
+        width: 100%;
+        max-width: 990px;
+        margin: 0 auto;
+        padding: 40px 10px;
+        box-sizing: border-box;
+    }
+
+    .uni-section {
+        background: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 500px;
+    }
+
+    .uni-auth-box {
+        width: 100%;
+        max-width: 420px;
+        padding: 40px;
+        background: #fff;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+    }
+
+    .uni-auth-title {
+        text-align: center;
+        font-size: 26px;
+        color: #333;
+        margin-bottom: 30px;
+        font-weight: 500;
+        border-bottom: 2px solid #f5f5f5;
+        padding-bottom: 20px;
+    }
+
+    .uni-form-group {
+        margin-bottom: 20px;
+    }
+
+    .uni-form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .uni-form-input {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0 12px;
+        font-size: 14px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+    }
+
+    .uni-form-input:focus {
+        border-color: #999;
+        outline: none;
+    }
+
+    .uni-form-btn {
+        width: 100%;
+        height: 44px;
+        background: #666;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    .uni-form-btn:hover {
+        background: #444;
+    }
+
+    .uni-auth-links {
+        margin-top: 15px;
+        text-align: right;
+        font-size: 13px;
+    }
+
+    .uni-auth-links a {
+        color: #666;
+        text-decoration: none;
+    }
+
+    .uni-auth-links a:hover {
+        color: #666;
+        text-decoration: underline;
+    }
+</style>
+<div class="uni-container">
+    <div class="uni-section">
+        <div class="uni-auth-box">
+            <h2 class="uni-auth-title">用户登录</h2>
             <form action="/login" method="post">
-                <div class="form_group">
+                <div class="uni-form-group">
                     <label>用户名</label>
-                    <input type="text" name="username" class="form_input" placeholder="请输入用户名" required>
+                    <input type="text" name="username" class="uni-form-input" placeholder="请输入用户名" required>
                 </div>
-                <div class="form_group">
+                <div class="uni-form-group">
                     <label>密码</label>
-                    <input type="password" name="password" class="form_input" placeholder="请输入密码" required>
+                    <input type="password" name="password" class="uni-form-input" placeholder="请输入密码" required>
                 </div>
-                <div class="form_group">
-                    <input type="submit" value="立即登录" class="form_btn">
+                <div class="uni-form-group">
+                    <input type="submit" value="立即登录" class="uni-form-btn">
                 </div>
-                <div class="auth_links">
+                <div class="uni-auth-links">
                     <a href="/regist">没有账号？免费注册 &gt;</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+<script src="/tpl_static/js/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
         $("form").submit(function (e) {

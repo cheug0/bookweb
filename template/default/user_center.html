@@ -1,21 +1,171 @@
 {{template "head.html" .}}
-<div class="container">
-    <div class="section">
-        <p class="title"><i class="fa fa-user-circle-o">&nbsp;</i>用户中心</p>
+<style>
+    /* Universal User Center Layout - Namespaced */
+    .uni-container {
+        width: 100%;
+        max-width: 990px;
+        margin: 0 auto;
+        padding: 20px 10px;
+        box-sizing: border-box;
+    }
 
-        <div class="uc_box" style="text-align: left;">
-            <div class="uc_tabs">
-                <div class="uc_tab_item active" data-tab="profile">个人资料</div>
-                <div class="uc_tab_item" data-tab="bookcase">我的书架</div>
-                <div class="uc_tab_item" data-tab="bookmark">我的书签</div>
+    .uni-section {
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #e6e6e6;
+        border-radius: 4px;
+        min-height: 500px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .uni-title {
+        font-size: 20px;
+        color: #333;
+        border-bottom: 2px solid #f5f5f5;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+    .uni-title i {
+        margin-right: 10px;
+        color: #666;
+    }
+
+    .uni-uc-box {
+        background: #fff;
+    }
+
+    .uni-uc-tabs {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 25px;
+    }
+
+    .uni-uc-tab-item {
+        display: inline-block;
+        padding: 12px 25px;
+        cursor: pointer;
+        font-size: 15px;
+        color: #666;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+        margin-bottom: -1px;
+    }
+
+    .uni-uc-tab-item:hover {
+        color: #666;
+    }
+
+    .uni-uc-tab-item.active {
+        color: #333;
+        border-bottom-color: #333;
+        font-weight: bold;
+    }
+
+    .uni-uc-tab-content {
+        display: none;
+    }
+
+    .uni-uc-tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .uni-uc-info-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .uni-uc-info-table td,
+    .uni-uc-info-table th {
+        padding: 12px 10px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .uni-uc-form td:first-child {
+        width: 100px;
+        text-align: right;
+        color: #666;
+        padding-right: 20px;
+    }
+
+    .uni-uc-form input[type="password"],
+    .uni-uc-form input[type="text"],
+    .uni-uc-form input[type="email"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 280px;
+        font-size: 14px;
+    }
+
+    .uni-l-btn {
+        background: #666;
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .uni-l-btn:hover {
+        background: #444;
+    }
+
+    .uni-l-btn-0 {
+        background: #999;
+        color: #fff;
+        padding: 8px 30px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: background 0.3s;
+    }
+
+    .uni-l-btn-0:hover {
+        background: #777;
+    }
+
+    .red {
+        color: #666;
+        font-weight: bold;
+    }
+</style>
+<div class="uni-container">
+    <div class="uni-section">
+        <p class="uni-title"><i class="fa fa-user-circle-o">&nbsp;</i>用户中心</p>
+
+        <div class="uni-uc-box" style="text-align: left;">
+            <div class="uni-uc-tabs">
+                <div class="uni-uc-tab-item active" data-tab="profile">个人资料</div>
+                <div class="uni-uc-tab-item" data-tab="bookcase">我的书架</div>
+                <div class="uni-uc-tab-item" data-tab="bookmark">我的书签</div>
             </div>
 
             <!-- Tab 1: Profile -->
-            <div id="profile" class="uc_tab_content active">
+            <div id="profile" class="uni-uc-tab-content active">
                 <div style="padding: 0 20px;">
                     <p style="font-size: 16px; margin-bottom: 20px;">欢迎你，<span class="red">{{.Username}}</span></p>
                     <form id="updateForm">
-                        <table class="uc_info_table uc_form">
+                        <table class="uni-uc-info-table uni-uc-form">
                             <tr>
                                 <td>用户名：</td>
                                 <td>{{.User.Username}} <span
@@ -47,11 +197,11 @@
 
             <!-- Tab 2: Bookshelf -->
             <!-- Tab 2: Bookshelf -->
-            <div id="bookcase" class="uc_tab_content">
+            <div id="bookcase" class="uni-uc-tab-content">
                 <div style="padding: 0 20px;">
                     {{if .Bookcases}}
                     <p style="color: #666; margin-bottom: 20px;">我的收藏 ({{len .Bookcases}}本)</p>
-                    <table class="uc_info_table" style="width:100%;">
+                    <table class="uni-uc-info-table" style="width:100%;">
                         <thead>
                             <tr style="background:#f9f9f9; color:#666;">
                                 <th style="text-align:left; padding:10px;">小说名称</th>
@@ -68,7 +218,7 @@
                                         target="_blank">{{.ChapterName}}</a></td>
                                 <td style="text-align:right; padding:10px;">
                                     <a href="javascript:void(0)" onclick="deleteBookcase('{{.CaseID}}')"
-                                        style="color:#d9534f;">移出</a>
+                                        style="color:#666;">移出</a>
                                 </td>
                             </tr>
                             {{end}}
@@ -79,7 +229,7 @@
                     <div style="padding: 40px; text-align: center; color: #999; border: 1px dashed #eee;">
                         <i class="fa fa-book" style="font-size: 40px; margin-bottom: 10px;"></i>
                         <p>书架空空如也，快去书城看看吧</p>
-                        <a href="/" class="l_btn"
+                        <a href="/" class="uni-l-btn"
                             style="display:inline-block; width:auto; padding:0 20px; margin-top: 15px;">去逛逛</a>
                     </div>
                     {{end}}
@@ -87,11 +237,11 @@
             </div>
 
             <!-- Tab 3: 书签 -->
-            <div id="bookmark" class="uc_tab_content">
+            <div id="bookmark" class="uni-uc-tab-content">
                 <div style="padding: 0 20px;">
                     {{if .Bookmarks}}
                     <p style="color: #666; margin-bottom: 20px;">我的书签 ({{len .Bookmarks}}章节)</p>
-                    <table class="uc_info_table" style="width:100%;">
+                    <table class="uni-uc-info-table" style="width:100%;">
                         <thead>
                             <tr style="background:#f9f9f9; color:#666;">
                                 <th style="text-align:left; padding:10px;">小说名称</th>
@@ -108,7 +258,7 @@
                                         target="_blank">{{.ChapterName}}{{if eq .ChapterName ""}}未知章节{{end}}</a></td>
                                 <td style="text-align:right; padding:10px;">
                                     <a href="javascript:void(0)" onclick="deleteBookmark('{{.BookID}}')"
-                                        style="color:#d9534f;">删除</a>
+                                        style="color:#666;">删除</a>
                                 </td>
                             </tr>
                             {{end}}
@@ -119,7 +269,7 @@
                     <div style="padding: 40px; text-align: center; color: #999; border: 1px dashed #eee;">
                         <i class="fa fa-book" style="font-size: 40px; margin-bottom: 10px;"></i>
                         <p>书签空空如也，快去书城看看吧</p>
-                        <a href="/" class="l_btn"
+                        <a href="/" class="uni-l-btn"
                             style="display:inline-block; width:auto; padding:0 20px; margin-top: 15px;">去逛逛</a>
                     </div>
                     {{end}}
@@ -127,21 +277,22 @@
             </div>
 
             <div style="margin-top: 40px; text-align: center; border-top: 1px dashed #eee; padding-top: 30px;">
-                <a href="/logout" class="l_btn_0" style="display:inline-block; width:auto; padding:0 20px;">退出登录</a>
+                <a href="/logout" class="uni-l-btn-0" style="display:inline-block; width:auto; padding:0 20px;">退出登录</a>
             </div>
         </div>
     </div>
 </div>
+<script src="/tpl_static/js/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
-        $(".uc_tab_item").click(function () {
+        $(".uni-uc-tab-item").click(function () {
             // Remove active class from all tabs
-            $(".uc_tab_item").removeClass("active");
+            $(".uni-uc-tab-item").removeClass("active");
             // Add active class to clicked tab
             $(this).addClass("active");
 
             // Hide all tab contents
-            $(".uc_tab_content").removeClass("active");
+            $(".uni-uc-tab-content").removeClass("active");
             // Show target tab content
             var tabId = $(this).data("tab");
             $("#" + tabId).addClass("active");

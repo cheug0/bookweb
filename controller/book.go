@@ -193,8 +193,13 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	page, _ := GetID(w, r, "page")
+	if page < 1 {
+		page = 1
+	}
+
 	// 优先尝试 GZIP 缓存
-	cacheKey := fmt.Sprintf("page_cache_index_%d", articleID)
+	cacheKey := fmt.Sprintf("page_cache_index_%d_%d", articleID, page)
 	gzipCacheKey := cacheKey + "_gzip"
 
 	useGzip := strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
@@ -226,12 +231,40 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 2. 获取章节目录（带缓存）
-	chapters, err := dao.GetChaptersByArticleIDCached(articleID)
+	allChapters, err := dao.GetChaptersByArticleIDCached(articleID)
 	if err != nil {
-		chapters = []*model.Chapter{}
+		allChapters = []*model.Chapter{}
 	}
 
-	// 准备数据
+	// 3. 分页逻辑
+	pageSize := 50
+	totalCount := len(allChapters)
+	totalPage := (totalCount + pageSize - 1) / pageSize
+	if totalPage == 0 {
+		totalPage = 1
+	}
+	if page > totalPage {
+		page = totalPage
+	}
+
+	startIndex := (page - 1) * pageSize
+	endIndex := startIndex + pageSize
+	if endIndex > totalCount {
+		endIndex = totalCount
+	}
+
+	var currentChapters []*model.Chapter
+	if startIndex < totalCount {
+		currentChapters = allChapters[startIndex:endIndex]
+	}
+
+	// 生成分页页码数组
+	var pages []int
+	for i := 1; i <= totalPage; i++ {
+		pages = append(pages, i)
+	}
+
+	// 4. 准备数据
 	tags := map[string]string{
 		"articlename": article.ArticleName,
 		"author":      article.Author,
@@ -239,8 +272,12 @@ func BookIndex(w http.ResponseWriter, r *http.Request) {
 	data := GetCommonData(r).
 		ApplySeo("book_index", tags).
 		Add("Article", article).
-		Add("Chapters", chapters).
-		Add("ChapterCount", len(chapters))
+		Add("Chapters", currentChapters).
+		Add("ChapterCount", totalCount).
+		Add("Page", page).
+		Add("TotalPage", totalPage).
+		Add("Pages", pages).
+		Add("CurrentAID", article.ArticleID) // 用于分页链接
 
 	// 5. 渲染页面
 	var buf bytes.Buffer

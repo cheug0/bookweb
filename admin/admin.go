@@ -574,7 +574,7 @@ func Modules(w http.ResponseWriter, r *http.Request) {
 	sorts, _ := dao.GetAllSorts()
 
 	// 过滤路由：只显示允许自定义的路由
-	allowedKeys := []string{"book", "book_index", "read", "sort", "top"}
+	allowedKeys := []string{"book", "book_index", "book_index_page", "read", "sort", "top"}
 	displayRoutes := make(map[string]string)
 	for _, key := range allowedKeys {
 		if val, ok := routerCfg.Routes[key]; ok {
@@ -634,11 +634,12 @@ func ModuleRoutesUpdate(w http.ResponseWriter, r *http.Request) {
 	cfg := config.GetRouterConfig()
 
 	allowedKeys := map[string]bool{
-		"book":       true,
-		"book_index": true,
-		"read":       true,
-		"sort":       true,
-		"top":        true,
+		"book":            true,
+		"book_index":      true,
+		"book_index_page": true,
+		"read":            true,
+		"sort":            true,
+		"top":             true,
 	}
 
 	for key, values := range r.Form {

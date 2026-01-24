@@ -103,7 +103,7 @@ h6 {
 .top .bar ul {
     float: right;
     text-align: right;
-    width: 320px;
+    width: auto;
     height: 30px;
     overflow: hidden
 }

@@ -1,0 +1,69 @@
+{{template "head.html" .}}
+<style>
+    #nr1 {
+        padding: 5px 10px;
+        text-align: justify;
+    }
+
+    #nr1 p {
+        text-indent: 2rem;
+        margin: 1rem 0;
+    }
+</style>
+
+<body id="nr_body" class="nr_all c_nr">
+    <div>
+        <div class="nr_set">
+            <div id="lightdiv" class="set1" onclick="nr_setbg('light')">关灯</div>
+            <div id="huyandiv" class="set1" onclick="nr_setbg('huyan')">护眼</div>
+            <div class="set2">
+                <div>字体：</div>
+                <div id="fontbig" onclick="nr_setbg('big')">大</div>
+                <div id="fontmiddle" onclick="nr_setbg('middle')">中</div>
+                <div id="fontsmall" onclick="nr_setbg('small')">小</div>
+            </div>
+            <div class="cc"></div>
+        </div>
+        <h1 class="nr_title" id="nr_title">
+            {{.Chapter.ChapterName}}
+        </h1>
+        <div class="nr_page">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="prev"><a id="pt_index" href="/">首页</a></td>
+                    <td class="mulu"><a id="shuqian"
+                            onclick="addbookcase('{{.Article.ArticleID}}','{{.Article.ArticleName}}','{{.Chapter.ChapterID}}','{{.Chapter.ChapterName}}')">加入书签</a>
+                    </td>
+                    <td class="next"><a id="pt_mulu" href="{{bookUrl .Article.ArticleID}}">返回目录</a></td>
+                </tr>
+            </table>
+        </div>
+        <div id="nr" class="nr_nr">
+            <div id="nr1">
+                {{.Chapter.Content | safe}}
+            </div>
+        </div>
+        <div class="nr_page">
+            <table cellpadding="0" cellspacing="0" style="margin: 5px 0;">
+                <tr>
+                    <td class="prev">
+                        {{if ne .PrevID 0}}
+                        <a id="pb_prev" href="{{readUrl .Article.ArticleID .PrevID}}">上一章</a>
+                        {{else}}
+                        <a id="pb_prev" href="{{bookUrl .Article.ArticleID}}">书首页</a>
+                        {{end}}
+                    </td>
+                    <td class="mulu"><a id="pb_mulu" href="{{bookUrl .Article.ArticleID}}">目录</a></td>
+                    <td class="next">
+                        {{if ne .NextID 0}}
+                        <a id="pb_next" href="{{readUrl .Article.ArticleID .NextID}}">下一章</a>
+                        {{else}}
+                        <a id="pb_next" href="javascript:alert('已经是最后一章了');">最后一章</a>
+                        {{end}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script>getset();</script>
+    {{template "foot.html" .}}

@@ -54,12 +54,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				Name:     "user_session",
 				Value:    sessID,
 				HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
+				Secure:   false, // 本地 HTTP 开发环境不能设为 true，否则 Safari 无法保存
+				SameSite: http.SameSiteLaxMode,
 				Path:     "/",
 			}
 			// 发送Cookie
 			http.SetCookie(w, &cookie)
+
+			// 设置一个非 HttpOnly 的 username cookie 供前端 JS 读取 (用于显示 "欢迎, xxx")
+			userCookie := http.Cookie{
+				Name:     "username",
+				Value:    user.Username,
+				HttpOnly: false, // 允许 JS 读取
+				Secure:   false,
+				Path:     "/",
+			}
+			http.SetCookie(w, &userCookie)
 
 			// 返回JSON成功
 			json.NewEncoder(w).Encode(map[string]interface{}{
@@ -77,6 +87,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// GET请求，渲染登录页面
+
+		// 访问登录页时，为了防止前端缓存的用户名与实际状态不一致，强制清除 username cookie
+		userCookie := http.Cookie{
+			Name:   "username",
+			Value:  "",
+			MaxAge: -1,
+			Path:   "/",
+		}
+		http.SetCookie(w, &userCookie)
+
 		data := GetCommonData(r).Add("CurrentTitle", "用户登录")
 
 		tPath, ok := GetTplPathOrError(w, "login.html")

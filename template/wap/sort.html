@@ -1,0 +1,41 @@
+{{template "head.html" .}}
+<div class="page-head" style="margin-bottom:5px;">
+    <a href="/" class="home">首页</a>
+    <a href="{{.TopUrl}}" rel="nofollow" class="bookcase">排行榜</a>
+    <h1>{{.Caption}}</h1>
+</div>
+
+{{range .Articles}}
+<table class="list-item">
+    <tr>
+        <td width="80"><a href="{{bookUrl .ArticleID}}"><img src="{{cover .ArticleID}}" width='80' height='100'
+                    onerror="this.src='/tpl_static/img/nocover.jpg'" /></a></td>
+        <td>
+            <div class="article">
+                <a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a><span class="fs12 red">({{if eq .FullFlag
+                    1}}完{{else}}连载{{end}})</span> <br />
+                <p class="fs12 gray"><span class="mr15">作者:{{.Author}}</span></p>
+                <a href="{{bookUrl .ArticleID}}">
+                    <div class="fs12 gray" style="height: 40px; overflow: hidden;">{{.Intro}}</div>
+                </a>
+            </div>
+        </td>
+    </tr>
+</table>
+{{end}}
+
+<div class="index-container">
+    {{if gt .Page 1}}<a class="index-container-btn" href="/sort/{{.CurrentSID}}/{{minus .Page 1}}/">上一页</a>
+    {{else}}<a class="index-container-btn" href="javascript:void(0);">上一页</a>{{end}}
+
+    <select id="indexselect" onchange="self.location.href=this.value">
+        {{range .Pages}}
+        <option value="/sort/{{$.CurrentSID}}/{{.}}/" {{if eq . $.Page}}selected{{end}}>第{{.}}页</option>
+        {{end}}
+    </select>
+
+    {{if lt .Page .TotalPage}}<a class="index-container-btn" href="/sort/{{.CurrentSID}}/{{plus .Page 1}}/">下一页</a>
+    {{else}}<a class="index-container-btn" href="javascript:void(0);">下一页</a>{{end}}
+</div>
+
+{{template "foot.html" .}}

@@ -25,6 +25,15 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	cookie.MaxAge = -1
 	http.SetCookie(w, cookie)
 
+	// 清除 username cookie
+	userCookie := http.Cookie{
+		Name:   "username",
+		Value:  "",
+		MaxAge: -1,
+		Path:   "/",
+	}
+	http.SetCookie(w, &userCookie)
+
 	// 重定向到首页
 	http.Redirect(w, r, "/", http.StatusFound)
 }

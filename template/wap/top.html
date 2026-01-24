@@ -1,0 +1,98 @@
+{{template "head.html" .}}
+<div class="page-head" style="margin-bottom:5px;">
+    <a href="/" class="home">首页</a>
+    <a href="javascript:toBookcase()" rel="nofollow" class="bookcase">我的书架</a>
+    <h1>排行榜</h1>
+</div>
+
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">总点击榜</p>
+    </div>
+    <div class="cc"></div>
+    {{range $i, $art := .Top.AllVisit}}
+    <div class="s_list">
+        <span class="num{{if le $i 2}} top3{{end}}">{{plus $i 1}}</span>
+        <a href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a>
+    </div>
+    {{end}}
+</div>
+
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">月点击榜</p>
+    </div>
+    <div class="cc"></div>
+    {{range $i, $art := .Top.MonthVisit}}
+    <div class="s_list">
+        <span class="num{{if le $i 2}} top3{{end}}">{{plus $i 1}}</span>
+        <a href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a>
+    </div>
+    {{end}}
+</div>
+
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">周点击榜</p>
+    </div>
+    <div class="cc"></div>
+    {{range $i, $art := .Top.WeekVisit}}
+    <div class="s_list">
+        <span class="num{{if le $i 2}} top3{{end}}">{{plus $i 1}}</span>
+        <a href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a>
+    </div>
+    {{end}}
+</div>
+
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">总推荐榜</p>
+    </div>
+    <div class="cc"></div>
+    {{range $i, $art := .Top.AllVote}}
+    <div class="s_list">
+        <span class="num{{if le $i 2}} top3{{end}}">{{plus $i 1}}</span>
+        <a href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a>
+    </div>
+    {{end}}
+</div>
+
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">最新入库</p>
+    </div>
+    <div class="cc"></div>
+    {{range $i, $art := .Top.PostDate}}
+    <div class="s_list">
+        <span class="num{{if le $i 2}} top3{{end}}">{{plus $i 1}}</span>
+        <a href="{{bookUrl $art.ArticleID}}">{{$art.ArticleName}}</a>
+    </div>
+    {{end}}
+</div>
+
+<style>
+    .s_list {
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+    }
+
+    .num {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        text-align: center;
+        background: #ccc;
+        color: #fff;
+        font-size: 12px;
+        border-radius: 3px;
+        margin-right: 8px;
+    }
+
+    .top3 {
+        background: #ff6600;
+    }
+</style>
+
+{{template "foot.html" .}}

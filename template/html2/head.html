@@ -1,4 +1,4 @@
-<html data-jetski-tab-id="1879654468">
+<html>
 
 <head>
     <meta charset="UTF-8">
@@ -14,6 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <link rel="shortcut icon" type="image/x-icon" href="/tpl_static/img/favicon.ico" media="screen">
     <link rel="stylesheet" href="/tpl_static/css/style.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <script src="/tpl_static/js/jquery.min.js"></script>
     <script src="/tpl_static/js/common.js"></script>
     <script>
         if (navigator.userAgent.toLowerCase().match(/(ipod|iphone|android|coolpad|mmp|smartphone|midp|wap|xoom|symbian|j2me|blackberry|wince)/i) != null) {
@@ -42,7 +44,13 @@
         <div class="bar">
             <span class="loginSide"><a href="#" onclick="click_fav();return false;">收藏本站（ Ctrl+D ）</a></span>
             <ul>
-                <script>login();</script>
+                {{if .IsLogin}}
+                <li>欢迎您，<a href="/user" class="redapp">{{.Username}}</a></li>
+                <li><a href="/logout">退出</a></li>
+                {{else}}
+                <li><a href="/login">登录</a></li>
+                <li><a href="/regist">注册</a></li>
+                {{end}}
             </ul>
         </div>
     </div>

@@ -1,0 +1,135 @@
+{{template "head.html" .}}
+<div class="index-head">
+    <h1><a href="/" class="logo">{{.SiteName}}</a></h1>
+    <a href="{{.TopUrl}}" rel="nofollow" class="btn">排行榜</a>
+</div>
+<div class="sort c_sort" id="submenu" style="display:none;">
+    <ul>
+        {{range .SortLinks}}
+        <li><a href="{{.Url}}">{{.Caption}}</a></li>
+        {{end}}
+        <div class="cc"></div>
+    </ul>
+</div>
+<div class="search">
+    <form id="post" name="t_frmsearch" method="get" action="/search">
+        <table cellpadding="0" cellspacing="0" style="width:100%;">
+            <tr>
+                <td style="width:50px;">
+                    <div id="type" class="type">综合</div>
+                </td>
+                <td style=" background-color:#fff; border:1px solid #CCC;">
+                    <input id="s_key" name="key" type="text" class="key" placeholder="请输入书名或作者">
+                </td>
+                <td
+                    style="width:35px; background-color:#0080C0; background-image:url('/tpl_static/img/search.png'); background-repeat:no-repeat; background-position:center">
+                    <input name="t_btnsearch" type="submit" value="" class="go">
+                </td>
+            </tr>
+        </table><span id="s_tips"></span>
+    </form>
+</div>
+
+<!-- 重磅推荐 (TopArticles) -->
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">重磅推荐</p>
+    </div>
+    <div class="cc"></div>
+    {{if .TopArticles}}
+    {{with index .TopArticles 0}}
+    <div class="sort_top">
+        <table>
+            <tr>
+                <td class="s_bt">
+                    <a href="{{bookUrl .ArticleID}}">
+                        <img height=100 width=80 src='{{cover .ArticleID}}'
+                            onerror="this.src='/tpl_static/img/nocover.jpg'" />
+                    </a>
+                </td>
+                <td>
+                    <div class="s_div"><a class="s_title" href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a> /
+                        {{.Author}} <br /><a class="s_intro" href="{{bookUrl .ArticleID}}"> {{.Intro}}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {{end}}
+    {{range (slice .TopArticles 1)}}
+    <div class="s_list"><a href="{{bookUrl .ArticleID}}">{{.Author}}：《{{.ArticleName}}》</a></div>
+    {{end}}
+    {{end}}
+</div>
+
+<!-- 热门小说 (HotArticles) -->
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">热门小说</p>
+    </div>
+    <div class="cc"></div>
+    {{if .HotArticles}}
+    {{with index .HotArticles 0}}
+    <div class="sort_top">
+        <table>
+            <tr>
+                <td class="s_bt">
+                    <a href="{{bookUrl .ArticleID}}">
+                        <img height=100 width=80 src='{{cover .ArticleID}}'
+                            onerror="this.src='/tpl_static/img/nocover.jpg'" />
+                    </a>
+                </td>
+                <td>
+                    <div class="s_div"><a class="s_title" href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a> /
+                        {{.Author}} <br /><a class="s_intro" href="{{bookUrl .ArticleID}}"> {{.Intro}}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {{end}}
+    {{range (slice .HotArticles 1)}}
+    <div class="s_list"><a href="{{bookUrl .ArticleID}}">{{.Author}}：《{{.ArticleName}}》</a></div>
+    {{end}}
+    {{end}}
+</div>
+
+<!-- 分类板块 (Blocks) -->
+{{range .Blocks}}
+<div class="s_m">
+    <div class="q_top c_big">
+        <p class="c_big_border">{{.Sort.Caption}}</p>
+        <div class="more"><a href="{{sortUrl .Sort.SortID 1}}">更多</a>
+        </div>
+    </div>
+    {{if .Articles}}
+    {{with index .Articles 0}}
+    <div class="sort_top">
+        <table>
+            <tr>
+                <td class="s_bt">
+                    <a href="{{bookUrl .ArticleID}}">
+                        <img height=100 width=80 src='{{cover .ArticleID}}'
+                            onerror="this.src='/tpl_static/img/nocover.jpg'" />
+                    </a>
+                </td>
+                <td>
+                    <div class="s_div"><a class="s_title" href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a> /
+                        {{.Author}} <br /><a class="s_intro" href="{{bookUrl .ArticleID}}"> {{.Intro}}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {{end}}
+    {{range (slice .Articles 1)}}
+    <div class="s_list"><a href="{{bookUrl .ArticleID}}">{{.Author}}：《{{.ArticleName}}》</a></div>
+    {{end}}
+    {{end}}
+</div>
+{{end}}
+
+{{template "foot.html" .}}

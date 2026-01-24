@@ -23,6 +23,39 @@ func BookUrl(articleID int) string {
 	return strings.Replace(pattern, ":aid", strconv.Itoa(EncodeID(articleID)), 1)
 }
 
+// BookIndexUrl 根据路由配置生成小说目录页 URL
+func BookIndexUrl(articleID int) string {
+	cfg := config.GetRouterConfig()
+	if cfg == nil {
+		return "/index_" + strconv.Itoa(EncodeID(articleID)) + ".html"
+	}
+	pattern := cfg.GetRoute("book_index")
+	if pattern == "" {
+		return "/index_" + strconv.Itoa(EncodeID(articleID)) + ".html"
+	}
+	return strings.Replace(pattern, ":aid", strconv.Itoa(EncodeID(articleID)), 1)
+}
+
+// BookIndexPageUrl 根据路由配置生成小说目录分页 URL
+func BookIndexPageUrl(articleID, page int) string {
+	cfg := config.GetRouterConfig()
+	if page < 1 {
+		page = 1
+	}
+	defaultUrl := "/index_" + strconv.Itoa(EncodeID(articleID)) + "_" + strconv.Itoa(page) + ".html"
+
+	if cfg == nil {
+		return defaultUrl
+	}
+	pattern := cfg.GetRoute("book_index_page")
+	if pattern == "" {
+		return defaultUrl
+	}
+	// 动态路由替换
+	url := strings.Replace(pattern, ":aid", strconv.Itoa(EncodeID(articleID)), 1)
+	return strings.Replace(url, ":page", strconv.Itoa(page), 1)
+}
+
 // ReadUrl 根据路由配置生成章节阅读页 URL
 // 从路由 "read" 规则读取模式，替换 :aid 和 :cid 参数
 func ReadUrl(articleID, chapterID int) string {

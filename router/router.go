@@ -295,6 +295,7 @@ func getHandler(name string) http.HandlerFunc {
 		"logout":          controller.Logout,
 		"book":            controller.BookInfo,
 		"book_index":      controller.BookIndex,
+		"book_index_page": controller.BookIndex,
 		"read":            controller.ChapterRead,
 		"sort":            controller.SortList,
 		"top":             controller.Top,

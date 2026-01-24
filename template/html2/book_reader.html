@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="/tpl_static/css/reader.css">
     <script src="/tpl_static/js/jquery.min.js"></script>
     <script src="/tpl_static/js/jquery.cookie.js"></script>
+    <script src="/tpl_static/js/common.js"></script>
+    <script src="/tpl_static/js/reader.js"></script>
 
 
     <style id="antigravity-scroll-lock-style">
@@ -58,7 +60,7 @@
                         href="javascript:addbookcase('{{.Article.ArticleID}}','{{.Article.ArticleName}}','{{.Chapter.ChapterID}}','{{.Chapter.ChapterName}}')">加入书架</a>
                 </li>
             </ul>
-            <div class="mlfy_main_l"><i class="szk"><em class="icon-cog"></em>
+            <div class="mlfy_main_l"><i class="szk" onclick="cog()"><em class="fa fa-cog"></em>
                     <z>阅读</z>设置
                 </i><i class="hid">（推荐配合 快捷键[F11] 进入全屏沉浸式阅读）</i></div>
         </div>
@@ -73,11 +75,6 @@
                         class="zt" title="思源黑体 CN">思源</span><span class="zt" title="苹方字体">苹方</span></li>
                 <li><span class="fl">字体大小</span><span class="dx dxl">A-</span><span class="dx dxc">20</span><span
                         class="dx dxr">A+</span></li>
-                <li class="hid"><span class="fl">页面宽度</span>
-                    <p class="dx kdl"><span class="icon"></span><span class="fl">-</span></p>
-                    <p class="dx kdc">100%</p>
-                    <p class="dx kdr"><span class="icon"></span><span class="fl">+</span></p>
-                </li>
             </ul>
             <div class="btn-wrap"><a class="red-btn" href="javascript:">保存</a><a class="grey-btn"
                     href="javascript:">取消</a></div>

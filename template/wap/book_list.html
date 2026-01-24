@@ -1,0 +1,30 @@
+{{template "head.html" .}}
+<div class="page-head">
+    <a href="/" class="home">首页</a>
+    <a href="{{.TopUrl}}" rel="nofollow" class="bookcase">排行榜</a>
+</div>
+<div class="lb_mulu">
+    <ul class="last9">
+        <li class="title"><a href="{{bookUrl .Article.ArticleID}}" class="back">返回《{{.Article.ArticleName}}》简介</a>
+        </li>
+        {{range .Chapters}}
+        <li><a href="{{readUrl $.Article.ArticleID .ChapterID}}">{{$.Article.ArticleName}} {{.ChapterName}}</a></li>
+        {{end}}
+    </ul>
+</div>
+<div class="index-container">
+    {{if gt .Page 1}}<a class="index-container-btn" href="{{bookIndexPageUrl .CurrentAID (minus .Page 1)}}">上一页</a>
+    {{else}}<a class="index-container-btn" href="javascript:void(0);">上一页</a>{{end}}
+
+    <select id="indexselect" onchange="self.location.href=this.value">
+        {{range .Pages}}
+        <option value="{{bookIndexPageUrl $.CurrentAID .}}" {{if eq . $.Page}}selected{{end}}>第{{.}}页</option>
+        {{end}}
+    </select>
+
+    {{if lt .Page .TotalPage}}<a class="index-container-btn"
+        href="{{bookIndexPageUrl .CurrentAID (plus .Page 1)}}">下一页</a>
+    {{else}}<a class="index-container-btn" href="javascript:void(0);">下一页</a>{{end}}
+</div>
+
+{{template "foot.html" .}}

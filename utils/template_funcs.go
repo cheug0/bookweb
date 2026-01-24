@@ -35,6 +35,12 @@ var BookFuncMap = template.FuncMap{
 	"bookUrl": func(id int) string {
 		return BookUrl(id)
 	},
+	"bookIndexUrl": func(id int) string {
+		return BookIndexUrl(id)
+	},
+	"bookIndexPageUrl": func(id, page int) string {
+		return BookIndexPageUrl(id, page)
+	},
 	"readUrl": func(aid, cid int) string {
 		return ReadUrl(aid, cid)
 	},
