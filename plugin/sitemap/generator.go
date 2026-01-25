@@ -6,7 +6,6 @@ import (
 	"bookweb/utils"
 	"encoding/xml"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -66,7 +65,7 @@ func GenerateSitemap() error {
 		return fmt.Errorf("获取文章列表失败: %v", err)
 	}
 
-	log.Printf("Sitemap: 找到 %d 篇文章", len(articles))
+	utils.LogInfo("Sitemap", "Sitemap: 找到 %d 篇文章", len(articles))
 
 	// 构建 URL 列表
 	var urls []URL
@@ -164,6 +163,6 @@ func writeXMLFile(data interface{}, path string) error {
 		return fmt.Errorf("编码 XML 失败: %v", err)
 	}
 
-	log.Printf("Sitemap: 写入文件 %s", path)
+	utils.LogInfo("Sitemap", "Sitemap: 写入文件 %s", path)
 	return nil
 }

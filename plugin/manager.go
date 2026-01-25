@@ -1,8 +1,8 @@
 package plugin
 
 import (
+	"bookweb/utils"
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -39,11 +39,11 @@ func (m *Manager) Register(p Plugin) {
 
 	name := p.Name()
 	if _, exists := m.plugins[name]; exists {
-		log.Printf("Warning: Plugin %s already registered, skipping", name)
+		utils.LogWarn("Plugin", "Plugin %s already registered, skipping", name)
 		return
 	}
 	m.plugins[name] = p
-	log.Printf("Plugin registered: %s", name)
+	utils.LogInfo("Plugin", "Plugin registered: %s", name)
 }
 
 // LoadConfig 加载插件配置文件
@@ -64,7 +64,7 @@ func (m *Manager) LoadConfig(configPath string) error {
 // InitAll 初始化所有已注册的插件
 func (m *Manager) InitAll(configPath string) error {
 	if err := m.LoadConfig(configPath); err != nil {
-		log.Printf("Warning: Failed to load plugin config: %v", err)
+		utils.LogWarn("Plugin", "Failed to load plugin config: %v", err)
 		// 继续执行，使用空配置
 	}
 
@@ -79,15 +79,15 @@ func (m *Manager) InitAll(configPath string) error {
 
 		// 检查是否启用
 		if enabled, ok := cfg["enabled"].(bool); ok && !enabled {
-			log.Printf("Plugin %s is disabled, skipping init", name)
+			utils.LogInfo("Plugin", "Plugin %s is disabled, skipping init", name)
 			continue
 		}
 
 		if err := p.Init(cfg); err != nil {
-			log.Printf("Failed to init plugin %s: %v", name, err)
+			utils.LogError("Plugin", "Failed to init plugin %s: %v", name, err)
 			continue
 		}
-		log.Printf("Plugin initialized: %s", name)
+		utils.LogInfo("Plugin", "Plugin initialized: %s", name)
 	}
 
 	m.initDone = true
@@ -138,7 +138,7 @@ func (m *Manager) ShutdownAll() {
 
 	for name, p := range m.plugins {
 		if err := p.Shutdown(); err != nil {
-			log.Printf("Error shutting down plugin %s: %v", name, err)
+			utils.LogError("Plugin", "Error shutting down plugin %s: %v", name, err)
 		}
 	}
 }
@@ -192,10 +192,10 @@ func (m *Manager) ReloadConfig(configPath string) error {
 
 		// 重新初始化插件（插件内部应处理配置更新）
 		if err := p.Init(cfg); err != nil {
-			log.Printf("Failed to reload plugin %s: %v", name, err)
+			utils.LogError("Plugin", "Failed to reload plugin %s: %v", name, err)
 			continue
 		}
-		log.Printf("Plugin config reloaded: %s", name)
+		utils.LogInfo("Plugin", "Plugin config reloaded: %s", name)
 	}
 
 	return nil
@@ -213,7 +213,7 @@ func (m *Manager) UpdatePluginConfig(name string, cfg map[string]interface{}) er
 		if err := p.Init(cfg); err != nil {
 			return err
 		}
-		log.Printf("Plugin config updated and reloaded: %s", name)
+		utils.LogInfo("Plugin", "Plugin config updated and reloaded: %s", name)
 	}
 
 	return nil

@@ -4,7 +4,6 @@ import (
 	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/utils"
-	"log"
 	"os"
 	"time"
 )
@@ -26,7 +25,7 @@ func ConfigWatcher(onRouterReload func()) {
 		}
 	}
 
-	log.Println("Config watcher service started.")
+	utils.LogInfo("Config", "Config watcher service started.")
 
 	for {
 		time.Sleep(2 * time.Second) // 每 2 秒检查一次
@@ -40,7 +39,7 @@ func ConfigWatcher(onRouterReload func()) {
 			}
 
 			if info.ModTime().After(lastMod) {
-				log.Printf("Config file detected change: %s", path)
+				utils.LogInfo("Config", "Config file detected change: %s", path)
 				files[path] = info.ModTime()
 				changed = true
 				if path == "config/router.conf" {
@@ -57,11 +56,11 @@ func ConfigWatcher(onRouterReload func()) {
 
 // reloadConfigs 执行配置重载
 func reloadConfigs(routerChanged bool, onRouterReload func()) {
-	log.Println("Service: Reloading configurations...")
+	utils.LogInfo("Config", "Service: Reloading configurations...")
 
 	// 1. 重载主体配置
 	if newCfg, err := config.LoadAppConfig("config/config.conf"); err != nil {
-		log.Printf("Error reloading config.conf: %v", err)
+		utils.LogError("Config", "Error reloading config.conf: %v", err)
 	} else {
 		// 数据库热重载
 		// 注意：这里简单实现，直接重连。高并发下建议加锁或使用连接池管理。
@@ -69,7 +68,7 @@ func reloadConfigs(routerChanged bool, onRouterReload func()) {
 
 		// 必须重新初始化预编译语句，因为 DB 对象变了
 		if err := dao.InitPreparedStatements(); err != nil {
-			log.Printf("Error re-initializing prepared statements: %v", err)
+			utils.LogError("Config", "Error re-initializing prepared statements: %v", err)
 		}
 
 		// 重新解析 ID 转换规则 (防止手动修改配置文件的情况)
@@ -81,11 +80,11 @@ func reloadConfigs(routerChanged bool, onRouterReload func()) {
 
 	// 2. 重载友情链接
 	if err := config.LoadLinkConfig("config/link.conf"); err != nil {
-		log.Printf("Error reloading link.conf: %v", err)
+		utils.LogWarn("Config", "Error reloading link.conf: %v", err)
 	}
 
 	if err := config.LoadSeoConfig("config/seo.conf"); err != nil {
-		log.Printf("Error reloading seo.conf: %v", err)
+		utils.LogWarn("Config", "Error reloading seo.conf: %v", err)
 	}
 
 	// 3. 如果路由配置变了，触发外部传入的回调
@@ -93,5 +92,5 @@ func reloadConfigs(routerChanged bool, onRouterReload func()) {
 		onRouterReload()
 	}
 
-	log.Println("Service: All configurations reloaded.")
+	utils.LogInfo("Config", "Service: All configurations reloaded.")
 }

@@ -417,18 +417,18 @@ a:hover{
     width:100%;
     }
 .nr_page table td{
-    text-align:center
+    text-align:center;
+    width:33.33%;
+    padding: 0 2px;
     }
 .nr_page .prev{
-    text-align:left;
-    margin-left:7px;
+    text-align:center;
     }
 .nr_page .mulu{
     text-align:center;
     }
 .nr_page .next{
-    text-align:right;
-    margin-right:7px;
+    text-align:center;
     }
 .prev a, .mulu a, .next a{
     display:block;

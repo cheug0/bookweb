@@ -5,6 +5,7 @@
     <div class="tab-btn active" onclick="switchTab(this, 'basic')">基本设置</div>
     <div class="tab-btn" onclick="switchTab(this, 'db')">数据库设置</div>
     <div class="tab-btn" onclick="switchTab(this, 'redis')">Redis 缓存</div>
+    <div class="tab-btn" onclick="switchTab(this, 'log')">日志设置</div>
 </div>
 
 <!-- BASIC SETTINGS TAB -->
@@ -90,7 +91,7 @@
                         <input type="text" name="mobile_template" value="{{.Config.Site.MobileTemplate}}"
                             class="form-control" placeholder="html_wap">
                     </div>
-                    <span class="form-help">移动端模板文件夹名称 (留空则使用PC模板)</span>
+                    <span class="form-help">移动端模板文件夹名称</span>
                 </div>
             </div>
 
@@ -452,6 +453,95 @@
     </div>
 </div>
 
+<!-- LOG SETTINGS TAB -->
+<div id="log" class="tab-content">
+    <div class="settings-container">
+        <form id="logForm">
+            <input type="hidden" name="update_type" value="log">
+
+            <div class="form-row">
+                <label class="form-label">日志级别</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <select name="log_level" class="form-control">
+                            <option value="debug" {{if eq .Config.Log.Level "debug" }}selected{{end}}>DEBUG (调试)
+                            </option>
+                            <option value="info" {{if eq .Config.Log.Level "info" }}selected{{end}}>INFO (信息)</option>
+                            <option value="warn" {{if eq .Config.Log.Level "warn" }}selected{{end}}>WARN (警告)</option>
+                            <option value="error" {{if eq .Config.Log.Level "error" }}selected{{end}}>ERROR (错误)
+                            </option>
+                        </select>
+                    </div>
+                    <span class="form-help">设置日志输出的最低级别</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">输出目标</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <select name="log_output" class="form-control">
+                            <option value="stdout" {{if eq .Config.Log.Output "stdout" }}selected{{end}}>控制台 (stdout)
+                            </option>
+                            <option value="file" {{if eq .Config.Log.Output "file" }}selected{{end}}>文件</option>
+                            <option value="both" {{if eq .Config.Log.Output "both" }}selected{{end}}>控制台+文件</option>
+                        </select>
+                    </div>
+                    <span class="form-help">日志输出到控制台或文件</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">日志文件路径</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="text" name="log_file_path" value="{{.Config.Log.FilePath}}" class="form-control"
+                            placeholder="logs/app.log">
+                    </div>
+                    <span class="form-help">日志文件保存路径 (相对或绝对路径)</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">单文件最大大小 (MB)</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="number" name="log_max_size" value="{{.Config.Log.MaxSize}}" class="form-control"
+                            min="1" placeholder="10">
+                    </div>
+                    <span class="form-help">当日志文件超过此大小时自动切割</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">日志保留天数</label>
+                <div class="form-content">
+                    <div class="form-control-wrapper">
+                        <input type="number" name="log_max_age" value="{{.Config.Log.MaxAge}}" class="form-control"
+                            min="1" placeholder="7">
+                    </div>
+                    <span class="form-help">超过此天数的日志文件将被自动清理</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">HTTP 请求日志</label>
+                <div class="form-content">
+                    <label class="custom-switch">
+                        <input type="checkbox" name="log_enable_http" {{if .Config.Log.EnableHTTP}}checked{{end}}>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span class="form-help" style="margin-left: 15px;">记录每个 HTTP 请求的访问日志</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; padding-left: 145px;">
+                <button type="submit" class="btn btn-teal">保存日志配置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function switchTab(btn, tabId) {
         // 移除所有激活状态
@@ -590,6 +680,7 @@
     };
 
     document.getElementById('redisForm').onsubmit = document.getElementById('dbForm').onsubmit;
+    document.getElementById('logForm').onsubmit = document.getElementById('dbForm').onsubmit;
 
 </script>
 {{end}}

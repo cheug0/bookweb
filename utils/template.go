@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bookweb/config"
-	"bookweb/plugin/ads"
 	"fmt"
 	"html/template"
 	"os"
@@ -12,8 +11,9 @@ import (
 )
 
 var (
-	templateCache = make(map[string]*template.Template)
-	templateMu    sync.RWMutex
+	templateCache    = make(map[string]*template.Template)
+	templateMu       sync.RWMutex
+	GetAdContentFunc func(slotID string) template.HTML
 )
 
 // CommonFuncMap 通用模板函数
@@ -58,7 +58,10 @@ var CommonFuncMap = template.FuncMap{
 		return LangtailUrl(lid)
 	},
 	"ad": func(slotID string) template.HTML {
-		return ads.GetAdContent(slotID)
+		if GetAdContentFunc != nil {
+			return GetAdContentFunc(slotID)
+		}
+		return ""
 	},
 	"plus":  func(a, b int) int { return a + b },
 	"minus": func(a, b int) int { return a - b },
@@ -141,7 +144,7 @@ func InitTemplates() error {
 				return fmt.Errorf("error parsing PC template %s: %v", t.name, err)
 			}
 			templateCache[t.name] = tmpl
-			fmt.Printf("PC Template cached: %s\n", t.name)
+			LogDebug("Template", "PC Template cached: %s", t.name)
 		}
 
 		// 2. 加载移动端模板 (如果配置了)
@@ -153,16 +156,10 @@ func InitTemplates() error {
 				if _, err := os.Stat(path); err == nil {
 					mFiles = append(mFiles, path)
 				} else {
-					// 其次尝试 PC 模板 (降级)
-					path = filepath.Join(tplDir, f)
-					if _, err := os.Stat(path); err == nil {
-						mFiles = append(mFiles, path)
-					} else {
-						// 最后尝试 default
-						defaultPath := filepath.Join("template/default", f)
-						if _, err := os.Stat(defaultPath); err == nil {
-							mFiles = append(mFiles, defaultPath)
-						}
+					// 直接尝试 default 目录 (不再回退到 PC 模板)
+					defaultPath := filepath.Join("template/default", f)
+					if _, err := os.Stat(defaultPath); err == nil {
+						mFiles = append(mFiles, defaultPath)
 					}
 				}
 			}
@@ -172,10 +169,10 @@ func InitTemplates() error {
 				mTmpl, err := mTmpl.ParseFiles(mFiles...)
 				if err != nil {
 					// 移动端模板加载失败不应该阻断启动，打日志即可
-					fmt.Printf("Warning: error parsing Mobile template %s: %v\n", t.name, err)
+					LogWarn("Template", "Error parsing Mobile template %s: %v", t.name, err)
 				} else {
 					templateCache["mobile/"+t.name] = mTmpl
-					fmt.Printf("Mobile Template cached: mobile/%s\n", t.name)
+					LogDebug("Template", "Mobile Template cached: mobile/%s (files: %v)", t.name, mFiles)
 				}
 			}
 		}

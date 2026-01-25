@@ -3,7 +3,6 @@ package dao
 import (
 	"bookweb/utils"
 	"database/sql"
-	"log"
 )
 
 // PreparedStatements 预编译的SQL语句
@@ -129,12 +128,12 @@ func InitPreparedStatements() error {
 		return logPrepareError("GetBookmarkByUser", err)
 	}
 
-	log.Println("All prepared statements initialized successfully")
+	utils.LogInfo("DAO", "All prepared statements initialized successfully")
 	return nil
 }
 
 func logPrepareError(name string, err error) error {
-	log.Printf("Failed to prepare statement %s: %v", name, err)
+	utils.LogError("DAO", "Failed to prepare statement %s: %v", name, err)
 	return err
 }
 

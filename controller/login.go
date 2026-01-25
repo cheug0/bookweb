@@ -4,9 +4,9 @@ import (
 	"bookweb/dao"
 	"bookweb/model"
 	"bookweb/service"
+	"bookweb/utils"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -78,7 +78,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			})
 		} else {
 			// 登录失败，用户名或密码错误
-			fmt.Println("登录失败：用户名或密码错误")
+			utils.LogWarn("Login", "登录失败：用户名或密码错误")
 			// 返回JSON失败
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"success": false,
@@ -99,13 +99,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 		data := GetCommonData(r).Add("CurrentTitle", "用户登录")
 
-		tPath, ok := GetTplPathOrError(w, "login.html")
-		if !ok {
-			return
-		}
-		t, err := template.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-		if err != nil {
-			http.Error(w, "解析模板失败: "+err.Error(), http.StatusInternalServerError)
+		// 使用预编译模板（自动根据PC/移动端选择）
+		t := GetRenderTemplate(w, r, "login.html")
+		if t == nil {
+			http.Error(w, "Template not found", http.StatusInternalServerError)
 			return
 		}
 		t.Execute(w, data)

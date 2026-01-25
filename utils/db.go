@@ -23,7 +23,7 @@ func InitDB(cfg *config.DbConfig) {
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DbName)
 	Db, err = sql.Open(cfg.Driver, dsn)
 	if err != nil {
-		fmt.Printf("DB Connection Error: %v\n", err)
+		LogError("Database", "DB Connection Error: %v", err)
 		return
 	}
 
@@ -47,9 +47,9 @@ func InitDB(cfg *config.DbConfig) {
 
 	// Test connection
 	if err := Db.Ping(); err != nil {
-		fmt.Printf("DB Ping Error: %v\n", err)
+		LogWarn("Database", "DB Ping Error: %v", err)
 	} else {
-		fmt.Printf("Database connection established. Pool: MaxOpen=%d, MaxIdle=%d, MaxLifetime=%ds\n",
+		LogInfo("Database", "Database connection established. Pool: MaxOpen=%d, MaxIdle=%d, MaxLifetime=%ds",
 			maxOpen, maxIdle, connMaxLifetime)
 	}
 }

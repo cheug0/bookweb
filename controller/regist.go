@@ -4,7 +4,6 @@ import (
 	"bookweb/service"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 )
 
@@ -41,13 +40,10 @@ func Regist(w http.ResponseWriter, r *http.Request) {
 		// GET请求，渲染注册页面
 		data := GetCommonData(r).Add("CurrentTitle", "用户注册")
 
-		tPath, ok := GetTplPathOrError(w, "regist.html")
-		if !ok {
-			return
-		}
-		t, err := template.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-		if err != nil {
-			http.Error(w, "解析模板失败: "+err.Error(), http.StatusInternalServerError)
+		// 使用预编译模板（自动根据PC/移动端选择）
+		t := GetRenderTemplate(w, r, "regist.html")
+		if t == nil {
+			http.Error(w, "Template not found", http.StatusInternalServerError)
 			return
 		}
 		t.Execute(w, data)

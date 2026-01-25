@@ -4,8 +4,8 @@ import (
 	"bookweb/dao"
 	"bookweb/model"
 	"bookweb/service"
+	"bookweb/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -23,7 +23,7 @@ func UserCenter(w http.ResponseWriter, r *http.Request) {
 	user, err := dao.GetUserByID(sess.UserID)
 	if err != nil {
 		// Log error?
-		fmt.Println("GetUserByID error:", err)
+		utils.LogError("User", "GetUserByID error: %v", err)
 		// Fallback to session username if DB fails?
 		// Or show error page?
 		// For now, let's just use session username and empty fields if error
@@ -48,7 +48,7 @@ func UserCenter(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			data.Add("Bookcases", bookcases)
 		} else {
-			fmt.Println("GetBookcaseList error:", err)
+			utils.LogError("User", "GetBookcaseList error: %v", err)
 		}
 
 		// 获取书签
@@ -56,7 +56,7 @@ func UserCenter(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			data.Add("Bookmarks", bookmarks)
 		} else {
-			fmt.Println("GetBookmarkList error:", err)
+			utils.LogError("User", "GetBookmarkList error: %v", err)
 		}
 
 	} else {

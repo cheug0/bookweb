@@ -218,6 +218,28 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			cfg.Redis.Port, _ = strconv.Atoi(r.FormValue("redis_port"))
 			cfg.Redis.Password = r.FormValue("redis_password")
 			cfg.Redis.DB, _ = strconv.Atoi(r.FormValue("redis_db"))
+		} else if updateType == "log" {
+			// 保存日志配置
+			cfg.Log.Level = r.FormValue("log_level")
+			cfg.Log.Output = r.FormValue("log_output")
+			cfg.Log.FilePath = r.FormValue("log_file_path")
+			cfg.Log.EnableHTTP = r.FormValue("log_enable_http") == "on"
+			if maxSize, err := strconv.Atoi(r.FormValue("log_max_size")); err == nil {
+				cfg.Log.MaxSize = maxSize
+			}
+			if maxAge, err := strconv.Atoi(r.FormValue("log_max_age")); err == nil {
+				cfg.Log.MaxAge = maxAge
+			}
+
+			// 实时更新日志器配置
+			utils.InitLogger(
+				cfg.Log.Level,
+				cfg.Log.Output,
+				cfg.Log.FilePath,
+				cfg.Log.EnableHTTP,
+				cfg.Log.MaxSize,
+				cfg.Log.MaxAge,
+			)
 		}
 
 		err := config.SaveAppConfig("config/config.conf")

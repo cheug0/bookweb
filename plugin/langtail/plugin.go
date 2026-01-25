@@ -2,6 +2,7 @@ package langtail
 
 import (
 	"bookweb/service"
+	"bookweb/utils"
 	"log"
 	"net/http"
 )
@@ -32,7 +33,7 @@ func (p *Plugin) Init(cfg map[string]interface{}) error {
 	}
 
 	if p.config.Enabled {
-		log.Printf("Langtail plugin enabled: cycle=%d days, cache=%d seconds, route=%s",
+		utils.LogInfo("Langtail", "Langtail plugin enabled: cycle=%d days, cache=%d seconds, route=%s",
 			p.config.FetchCycleDays, p.config.CacheSeconds, p.config.RoutePattern)
 	}
 

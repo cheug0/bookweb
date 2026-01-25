@@ -49,7 +49,7 @@ func SaveUser(username string, password string, email string) error {
 	sqlStr := "insert into users(username,password,email) values(?,?,?)"
 	_, err = utils.Db.Exec(sqlStr, username, string(hashedPassword), email)
 	if err != nil {
-		fmt.Println("执行错误：", err)
+		utils.LogError("DAO", "SaveUser error: %v", err)
 		return err
 	}
 	return nil
@@ -70,7 +70,7 @@ func UpdateUser(user *model.User) error {
 	sqlStr := "update users set password = ?, email = ? where id = ?"
 	_, err := utils.Db.Exec(sqlStr, passwordToSave, user.Email, user.Id)
 	if err != nil {
-		fmt.Println("执行错误：", err)
+		utils.LogError("DAO", "UpdateUser error: %v", err)
 		return err
 	}
 	return nil
@@ -98,7 +98,7 @@ func UpdateLoginTime(userID int, lastLogin string, currentLogin string) error {
 	sqlStr := "update users set last_login_time = ?, current_login_time = ? where id = ?"
 	_, err := utils.Db.Exec(sqlStr, lastLogin, currentLogin, userID)
 	if err != nil {
-		fmt.Println("执行错误：", err)
+		utils.LogError("DAO", "UpdateLoginTime error: %v", err)
 		return err
 	}
 	return nil

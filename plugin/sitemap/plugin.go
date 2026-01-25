@@ -1,6 +1,7 @@
 package sitemap
 
 import (
+	"bookweb/utils"
 	"log"
 	"net/http"
 	"os"
@@ -120,6 +121,6 @@ func (p *Plugin) serveSitemap(w http.ResponseWriter, r *http.Request) {
 // Shutdown 关闭插件
 func (p *Plugin) Shutdown() error {
 	close(p.stopChan)
-	log.Println("Sitemap plugin shutdown")
+	utils.LogInfo("Sitemap", "Sitemap plugin shutdown")
 	return nil
 }

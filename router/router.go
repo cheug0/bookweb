@@ -9,7 +9,6 @@ import (
 	"bookweb/utils"
 	"context"
 	"html/template"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -179,7 +178,7 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 				router.Handle(method, pattern, adaptHandler(handler))
 			}
 		}
-		log.Printf("Plugin route registered: %s", pattern)
+		utils.LogInfo("Router", "Plugin route registered: %s", pattern)
 	}
 
 	// 设置 NotFound 拦截器来处理复杂正则路由
@@ -339,7 +338,7 @@ func adaptHandlerFunc(h http.HandlerFunc) httprouter.Handle {
 // checkDBConnection 检查数据库连接，失败则渲染错误页面
 func checkDBConnection(w http.ResponseWriter) bool {
 	if err := utils.Db.Ping(); err != nil {
-		log.Printf("Database connection failed: %v", err)
+		utils.LogError("Router", "Database connection failed: %v", err)
 		t, parseErr := template.ParseFiles(controller.TplPath("db_error.html"))
 		if parseErr != nil {
 			// 如果模版加载失败，返回简单文本
@@ -365,7 +364,9 @@ func checkDomain(w http.ResponseWriter, r *http.Request) bool {
 			return true
 		}
 
-		if r.Host != cfg.Site.Domain {
+		// 检查是否匹配 PC 域名或移动端域名
+		host := r.Host
+		if host != cfg.Site.Domain && host != cfg.Site.MobileDomain {
 			http.Error(w, "Forbidden: Domain not allowed (Invalid Host)", http.StatusForbidden)
 			return false
 		}

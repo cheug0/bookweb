@@ -326,7 +326,7 @@ func IncArticleVisit(id int) error {
 		if err != nil {
 			// 如果 Redis 操作失败，记录错误并降级到直接写库 (这里简化处理，直接返回错误或继续)
 			// 为保证数据一致性，如果 Redis 挂了，这里可以选择降级
-			fmt.Printf("Redis Incr failed: %v\n", err)
+			utils.LogError("Redis", "Redis Incr failed: %v", err)
 		} else {
 			// 如果未达到阈值，直接返回，不写库
 			if val < FlushThreshold {

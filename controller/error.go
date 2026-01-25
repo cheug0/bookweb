@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bookweb/utils"
-	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -15,14 +14,10 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 	// 设置状态码为 404
 	w.WriteHeader(http.StatusNotFound)
 
-	// 解析并执行模版
-	tPath, ok := GetTplPathOrError(w, "404.html")
-	if !ok {
-		return
-	}
-	t, err := template.ParseFiles(tPath, TplPath("head.html"), TplPath("foot.html"))
-	if err != nil {
-		// 如果模版解析失败，回退到默认 404
+	// 使用预编译模板（自动根据PC/移动端选择）
+	t := GetRenderTemplate(w, r, "error.html")
+	if t == nil {
+		// 如果模版获取失败，回退到默认 404
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}

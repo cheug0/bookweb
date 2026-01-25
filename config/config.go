@@ -54,6 +54,17 @@ type AppConfig struct {
 	Links     []LinkConfig       `json:"-"`
 	Analytics string             `json:"analytics"`
 	Redis     RedisConfig        `json:"redis"`
+	Log       LogConfig          `json:"log"`
+}
+
+// LogConfig 日志配置
+type LogConfig struct {
+	Level      string `json:"level"`       // debug/info/warn/error
+	Output     string `json:"output"`      // stdout/file/both
+	FilePath   string `json:"file_path"`   // 日志文件路径
+	EnableHTTP bool   `json:"enable_http"` // 开启HTTP请求日志
+	MaxSize    int    `json:"max_size"`    // 单个日志文件最大大小 (MB)
+	MaxAge     int    `json:"max_age"`     // 日志保留天数
 }
 
 // RedisConfig Redis缓存配置

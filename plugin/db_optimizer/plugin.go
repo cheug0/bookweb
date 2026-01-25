@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -169,7 +168,7 @@ func (p *Plugin) Check(w http.ResponseWriter, r *http.Request) {
 		exists, err := p.checkIndexExists(idx.Table, idx.Index)
 		missing := false
 		if err != nil {
-			log.Printf("Check index error: %v", err)
+			utils.LogError("DBOptimizer", "Check index error: %v", err)
 			// 出错视为不确定，或者缺失
 			missing = true
 		} else if !exists {
@@ -217,7 +216,7 @@ func (p *Plugin) Optimize(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(err.Error(), "Duplicate key name") || strings.Contains(err.Error(), "already exists") {
 				// 忽略
 			} else {
-				log.Printf("Failed to execute SQL: %s, Error: %v", sqlStr, err)
+				utils.LogError("DBOptimizer", "Failed to execute SQL: %s, Error: %v", sqlStr, err)
 			}
 		}
 	}

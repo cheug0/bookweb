@@ -1,7 +1,7 @@
 package ads
 
 import (
-	"log"
+	"bookweb/utils"
 	"net/http"
 )
 
@@ -26,7 +26,7 @@ func (p *Plugin) Init(cfg map[string]interface{}) error {
 	SetConfig(p.config)
 
 	if p.config.Enabled {
-		log.Printf("Ads plugin enabled with %d slots", len(p.config.Slots))
+		utils.LogInfo("Ads", "Ads plugin enabled with %d slots", len(p.config.Slots))
 	}
 
 	return nil
@@ -39,7 +39,7 @@ func (p *Plugin) GetRoutes() map[string]http.HandlerFunc {
 
 // Shutdown 关闭插件
 func (p *Plugin) Shutdown() error {
-	log.Println("Ads plugin shutdown")
+	utils.LogInfo("Ads", "Ads plugin shutdown")
 	return nil
 }
 
