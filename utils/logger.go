@@ -1,3 +1,6 @@
+// logger.go
+// 日志工具
+// 全局统一的日志记录器，支持文件轮换和清理
 package utils
 
 import (

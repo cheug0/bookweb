@@ -1,3 +1,6 @@
+// url_generator.go
+// URL 生成工具
+// 集中管理各类页面 URL 的生成逻辑
 package utils
 
 import (

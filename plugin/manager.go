@@ -1,3 +1,6 @@
+// manager.go
+// 插件管理器
+// 负责插件的加载、初始化、配置注入及生命周期管理
 package plugin
 
 import (

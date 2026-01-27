@@ -1,3 +1,6 @@
+// prepared_statements.go
+// 预编译语句管理
+// 负责初始化和管理所有 DAO 层使用的预编译 SQL 语句，提升数据库性能
 package dao
 
 import (

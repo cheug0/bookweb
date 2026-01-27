@@ -1,3 +1,6 @@
+// sort.go
+// 分类控制器
+// 处理小说分类列表页的展示与分页
 package controller
 
 import (

@@ -1,3 +1,6 @@
+// plugin.go (langtail)
+// 长尾词插件主文件
+// 实现长尾词插件的初始化及定时任务注册
 package langtail
 
 import (
@@ -33,8 +36,8 @@ func (p *Plugin) Init(cfg map[string]interface{}) error {
 	}
 
 	if p.config.Enabled {
-		utils.LogInfo("Langtail", "Langtail plugin enabled: cycle=%d days, cache=%d seconds, route=%s",
-			p.config.FetchCycleDays, p.config.CacheSeconds, p.config.RoutePattern)
+		utils.LogInfo("Langtail", "Langtail plugin enabled: cycle=%d days, cache=%d seconds, route=%s, show_count=%d",
+			p.config.FetchCycleDays, p.config.CacheSeconds, p.config.RoutePattern, p.config.ShowCount)
 	}
 
 	return nil

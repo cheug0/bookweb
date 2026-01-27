@@ -1,3 +1,6 @@
+// generator.go (sitemap)
+// Sitemap 生成器
+// 负责遍历数据库并生成 XML 文件的核心逻辑
 package sitemap
 
 import (

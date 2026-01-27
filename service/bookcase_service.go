@@ -1,3 +1,6 @@
+// bookcase_service.go
+// 书架服务
+// 处理书架相关的业务逻辑
 package service
 
 import (

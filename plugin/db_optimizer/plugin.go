@@ -1,3 +1,6 @@
+// plugin.go (db_optimizer)
+// 数据库优化插件
+// 提供数据库连接检查及手动优化功能
 package db_optimizer
 
 import (

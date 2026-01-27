@@ -1,3 +1,6 @@
+// user_dao.go
+// 用户 DAO
+// 处理前台用户相关的数据库操作，如注册、登录验证、信息修改
 package dao
 
 import (

@@ -1,3 +1,6 @@
+// cache_dao.go
+// 缓存 DAO
+// 封装了基于 Redis 的常用数据查询（小说、章节、分类等），提供自动缓存能力
 package dao
 
 import (

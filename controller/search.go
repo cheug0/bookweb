@@ -1,3 +1,6 @@
+// search.go
+// 搜索控制器
+// 处理小说搜索请求，支持按书名或作者搜索
 package controller
 
 import (

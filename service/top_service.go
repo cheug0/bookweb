@@ -1,3 +1,6 @@
+// top_service.go
+// 排行榜服务
+// 处理排行榜数据的聚合与计算
 package service
 
 import (

@@ -5,13 +5,15 @@ BookWeb 是一个使用 Go 语言开发的现代化小说阅读 Web 程序，旨
 ## ✨ 特性
 
 - **高性能**：基于 Go 语言和 httprouter，提供出色的并发处理能力
+- **移动端适配**：智能识别移动端设备，自动切换模板与路由，完美支持手机访问
 - **Redis 缓存**：可选的 Redis 缓存支持，大幅提升页面响应速度
-- **热重载**：支持路由配置热重载，无需重启即可生效
+- **热重载**：支持路由配置、插件配置热重载，无需重启即可生效
 - **插件系统**：灵活的插件架构，支持广告管理、数据库优化、长尾词采集等
 - **多模板支持**：支持多套前端模板，轻松切换站点风格
-- **完整后台**：功能齐全的管理后台，包含文章、用户、配置等管理
+- **统一日志**：结构化日志系统，支持文件轮换 (Size/Age) 与自动清理
+- **完整后台**：功能齐全的管理后台，包含文章、用户、配置、日志管理
 - **用户系统**：支持用户注册、登录、书架、书签等功能
-- **SEO 友好**：可配置的 URL 路由和 SEO 规则
+- **SEO 友好**：可配置的 URL 路由、Sitemap 生成及精细化 SEO 规则
 - **GZIP 压缩**：可选的 GZIP 压缩，减少传输带宽
 - **ID 转换**：支持 ID 算术转换，便于多站点共享数据库
 
@@ -37,7 +39,8 @@ bookweb/
 ├── plugin/             # 插件目录
 │   ├── ads/            # 广告管理插件
 │   ├── db_optimizer/   # 数据库优化插件
-│   └── langtail/       # 长尾词采集插件
+│   ├── langtail/       # 长尾词采集插件
+│   └── sitemap/        # 网站地图插件
 ├── router/             # 路由管理
 ├── service/            # 服务层
 ├── sql/                # SQL 脚本
@@ -114,6 +117,13 @@ SQL: UPDATE admin SET password = '$2a$10$xxxxx...' WHERE username = 'admin';
        "sitename": "我的小说站",
        "domain": "localhost:8080",
        "template": "html"
+     },
+     "log": {
+       "level": "info",
+       "output": "file",
+       "file_path": "logs/app.log",
+       "max_size": 100,
+       "max_age": 7
      }
    }
    ```
@@ -138,13 +148,16 @@ SQL: UPDATE admin SET password = '$2a$10$xxxxx...' WHERE username = 'admin';
 | `server` | HTTP 服务器配置 |
 | `site.sitename` | 站点名称 |
 | `site.domain` | 站点域名 |
-| `site.template` | 使用的模板目录 |
+| `site.mobile_domain` | 移动端域名 |
+| `site.template` | PC 端模板目录 |
+| `site.mobile_template`| 移动端模板目录 |
 | `site.admin_path` | 后台管理路径 |
 | `site.force_domain` | 强制域名跳转 |
 | `site.gzip_enabled` | 启用 GZIP 压缩 |
 | `site.id_trans_rule` | ID 转换规则（如 `+1000`） |
 | `redis` | Redis 缓存配置 |
 | `storage` | 存储配置（local/oss） |
+| `log` | 日志系统配置 |
 
 ### 路由配置 (router.conf)
 
@@ -186,17 +199,73 @@ SQL: UPDATE admin SET password = '$2a$10$xxxxx...' WHERE username = 'admin';
         "enabled": true
       }
     }
+  },
+  "langtail": {
+    "enabled": true,
+    "fetch_cycle_days": 7,
+    "cache_seconds": 3600,
+    "route_pattern": "/books/:lid",
+    "show_count": 50 // 显示数量限制
   }
 }
 ```
+
+### 长尾词采集 (Langtail)
+
+- **自动采集**：根据小说名自动从百度搜索下拉框采集长尾关键词。
+- **智能展示**：支持配置显示数量 (`show_count`)，按最新获取时间排序。
+- **SEO 优化**：自动生成关联长尾词页面，提升站点收录。
 
 ## 🎨 模板开发
 
 模板文件位于 `template/` 目录，支持多套模板切换。
 
+### 本地化资源
+
+项目内置了 Google Fonts (Inter 字体) 的本地化版本，位于 `static/css/fonts.css`，无需依赖外部网络，加快加载速度。
+
 ### 模板变量
 
-模板中可用的常用变量和函数请参考 `utils/template_funcs.go`。
+#### 全局变量 (Global Variables)
+
+所有页面均可使用的变量：
+
+| 变量名 | 类型 | 说明 |
+|--------|------|------|
+| `SiteName` | string | 站点名称 |
+| `SiteDomain` | string | 站点域名 |
+| `IsLogin` | bool | 用户是否已登录 |
+| `Username` | string | 当前登录用户名 |
+| `CurrentTitle` | string | 当前页面推测的 SEO 标题 |
+| `CurrentKeywords` | string | 当前页面 SEO 关键词 |
+| `CurrentDesc` | string | 当前页面 SEO 描述 |
+| `SortLinks` | []map | 分类导航链接列表 (`Caption`, `Url`, `Id`) |
+| `TopUrl` | string | 排行榜页面 URL |
+| `Analytics` | html | 统计代码 (原样输出) |
+
+#### 常用函数 (Helper Functions)
+
+可在模板中直接调用的辅助函数：
+
+**URL 生成**
+- `bookUrl(id)`: 生成小说详情页 URL
+- `readUrl(aid, cid)`: 生成章节阅读页 URL
+- `sortUrl(sortID, page)`: 生成分类列表页 URL
+- `bookIndexUrl(id)`: 生成小说目录页 URL
+- `langtailUrl(lid)`: 生成长尾词落地页 URL
+- `cover(id)`: 获取小说封面图片路径
+
+**数据格式化**
+- `formatDate(timestamp)`: 格式化时间戳 (YYYY-MM-DD)
+- `formatDateShort(timestamp)`: 简短日期格式 (MM-DD)
+- `formatSize(bytes)`: 格式化文件大小 (如 1.2万字)
+- `safe(html)`: 输出不转义的 HTML 内容
+
+**工具函数**
+- `add(a, b)`: 加法运算
+- `minus(a, b)`: 减法运算
+- `mod(a, b)`: 取模运算
+- `ad(slot)`: 输出指定槽位的广告代码
 
 ### 切换模板
 

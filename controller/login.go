@@ -1,3 +1,6 @@
+// login.go
+// 登录控制器
+// 处理用户登录请求，验证用户名密码并创建会话
 package controller
 
 import (

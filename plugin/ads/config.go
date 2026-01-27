@@ -1,3 +1,6 @@
+// config.go (ads)
+// 广告配置
+// 定义广告插件的配置结构
 package ads
 
 // AdSlot 广告位结构

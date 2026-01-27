@@ -1,3 +1,6 @@
+// chapter.go
+// 章节模型
+// 定义小说章节内容及元数据结构
 package model
 
 // Chapter 章节模型，对应 jieqi_article_chapter 表

@@ -1,3 +1,6 @@
+// service.go (langtail)
+// 长尾词服务逻辑
+// 实现长尾词的自动采集和更新逻辑
 package langtail
 
 import (

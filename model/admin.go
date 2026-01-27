@@ -1,3 +1,6 @@
+// admin.go
+// 管理员模型
+// 定义后台管理员的数据结构
 package model
 
 // Admin 管理员模型

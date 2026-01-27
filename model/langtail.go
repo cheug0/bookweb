@@ -1,3 +1,6 @@
+// langtail.go
+// 长尾词模型
+// 定义长尾关键词及其关联信息的数据结构
 package model
 
 // Langtail 长尾词数据模型

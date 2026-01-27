@@ -1,3 +1,6 @@
+// article.go
+// 小说模型
+// 定义小说/文章的基本信息结构
 package model
 
 // Article 小说模型，对应 jieqi_article_article 表

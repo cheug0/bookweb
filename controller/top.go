@@ -1,3 +1,6 @@
+// top.go
+// 排行榜控制器
+// 处理小说点击排行榜页面的展示
 package controller
 
 import (

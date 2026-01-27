@@ -1,3 +1,6 @@
+// admin.go
+// 后台管理控制器
+// 处理后台管理界面的各类请求，如模块设置、插件管理等
 package admin
 
 import (
@@ -18,19 +21,13 @@ func tplPath(name string) string {
 	return "admin/template/" + name
 }
 
-// adminFuncMap 后台模板函数
-var adminFuncMap = template.FuncMap{
-	"minus": func(a, b int) int { return a - b },
-	"plus":  func(a, b int) int { return a + b },
-}
-
 // parseTpl 解析后台模板
 func parseTpl(names ...string) (*template.Template, error) {
 	paths := make([]string, len(names))
 	for i, name := range names {
 		paths[i] = tplPath(name)
 	}
-	return template.New(names[0]).Funcs(adminFuncMap).ParseFiles(paths...)
+	return template.New(names[0]).Funcs(utils.CommonFuncMap).ParseFiles(paths...)
 }
 
 // getAdminData 获取后台通用模板数据
@@ -613,6 +610,7 @@ func Modules(w http.ResponseWriter, r *http.Request) {
 	data["Routes"] = displayRoutes
 	data["SeoRules"] = appCfg.SeoRules
 	data["Sorts"] = sorts
+	data["Recommend"] = appCfg.Recommend
 	t.ExecuteTemplate(w, "layout", data)
 }
 
@@ -731,6 +729,35 @@ func ModuleSeoUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jsonResponse(w, map[string]interface{}{"success": true, "message": "SEO 配置保存成功"})
+}
+
+// ModuleRecommendUpdate 更新推荐配置
+func ModuleRecommendUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cfg := config.GetGlobalConfig()
+
+	cfg.Recommend.Top.Sort = r.FormValue("top_sort")
+	if limit, err := strconv.Atoi(r.FormValue("top_limit")); err == nil {
+		cfg.Recommend.Top.Limit = limit
+	}
+	cfg.Recommend.Top.Picks = r.FormValue("top_picks")
+
+	cfg.Recommend.Hot.Sort = r.FormValue("hot_sort")
+	if limit, err := strconv.Atoi(r.FormValue("hot_limit")); err == nil {
+		cfg.Recommend.Hot.Limit = limit
+	}
+	cfg.Recommend.Hot.Picks = r.FormValue("hot_picks")
+
+	err := config.SaveAppConfig("config/config.conf")
+	if err != nil {
+		jsonResponse(w, map[string]interface{}{"success": false, "message": err.Error()})
+		return
+	}
+	jsonResponse(w, map[string]interface{}{"success": true, "message": "推荐配置保存成功"})
 }
 
 // TestDBConnection 测试数据库连接

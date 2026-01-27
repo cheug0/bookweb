@@ -1,3 +1,6 @@
+// config.go
+// 配置管理模块
+// 负责加载和解析应用、路由、SEO、友情链接等各类配置文件
 package config
 
 import (
@@ -55,6 +58,27 @@ type AppConfig struct {
 	Analytics string             `json:"analytics"`
 	Redis     RedisConfig        `json:"redis"`
 	Log       LogConfig          `json:"log"`
+	Recommend RecommendConfig    `json:"recommend"`
+}
+
+// RecommendConfig 推荐设置
+type RecommendConfig struct {
+	Top TopConfig `json:"top"`
+	Hot HotConfig `json:"hot"`
+}
+
+// TopConfig 大神/置顶推荐配置
+type TopConfig struct {
+	Sort  string `json:"sort"`  // 排序方式: allvisit, monthvisit, etc.
+	Limit int    `json:"limit"` // 数量
+	Picks string `json:"picks"` // 手动推荐ID (逗号分隔)
+}
+
+// HotConfig 热门推荐配置
+type HotConfig struct {
+	Sort  string `json:"sort"`
+	Limit int    `json:"limit"`
+	Picks string `json:"picks"` // 手动推荐ID
 }
 
 // LogConfig 日志配置
@@ -175,6 +199,16 @@ func LoadAppConfig(configPath string) (*AppConfig, error) {
 	if cfg.Site.AdminPath == "" {
 		cfg.Site.AdminPath = "/admin"
 	}
+	// 初始化推荐配置默认值
+	if cfg.Recommend.Top.Limit == 0 {
+		cfg.Recommend.Top.Sort = "allvisit"
+		cfg.Recommend.Top.Limit = 6
+	}
+	if cfg.Recommend.Hot.Limit == 0 {
+		cfg.Recommend.Hot.Sort = "allvisit"
+		cfg.Recommend.Hot.Limit = 12
+	}
+
 	GlobalConfig = &cfg
 	configLock.Unlock()
 	return &cfg, nil

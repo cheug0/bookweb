@@ -1,3 +1,6 @@
+// plugin.go
+// 插件接口定义
+// 定义所有插件必须实现的接口规范
 package plugin
 
 import "net/http"

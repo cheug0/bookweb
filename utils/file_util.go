@@ -1,3 +1,6 @@
+// file_util.go
+// 文件工具
+// 提供文件读写、路径处理等辅助功能
 package utils
 
 import (

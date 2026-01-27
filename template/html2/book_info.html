@@ -17,8 +17,7 @@
                 <div class="bookright">
                     <div class="d_title">
                         <h1>{{.Article.ArticleName}}</h1>
-                        <span class="p_author">作者：<a href="/search/?searchkey={{.Article.Author}}"
-                                target="_blank">{{.Article.Author}}</a></span>
+                        <span class="p_author">作者：{{.Article.Author}}</span>
                     </div>
                     <div id="count">
                         <ul>
@@ -37,7 +36,7 @@
                 <div id="button_all">
                     <ul>
                         <li class="b1"><a rel="nofollow"
-                                href="{{readUrl .Article.ArticleID .Article.LastChapterID}}">开始阅读</a></li>
+                                href="{{readUrl .Article.ArticleID (index .Chapters 0).ChapterID}}">开始阅读</a></li>
                         <li class="b2"><a rel="nofollow"
                                 href="javascript:addbookcase('{{.Article.ArticleID}}','{{.Article.ArticleName}}')">加入书架</a>
                         </li>
@@ -82,26 +81,15 @@
     </div>
     <i class="lbxxyx_s">章节目录</i>
 
-    {{if .LatestArticles}}
+    {{if .Langtails}}
     <div id="product">
-        <h2>精品小说</h2>
-        <ul>
-            {{range (slice .LatestArticles 0 (min (len .LatestArticles) 8))}}
-            <li><a href="{{bookUrl .ArticleID}}"><img src="{{cover .ArticleID}}" alt="{{.ArticleName}}" width="100"
-                        height="140"></a><a href="{{bookUrl .ArticleID}}">
-                    <h3>{{.ArticleName}}</h3>
-                </a></li>
-            {{end}}
-        </ul>
+        <h2>小说推荐</h2>
         <div class="prodlist">
             <ol>
-                {{if gt (len .LatestArticles) 8}}
-                {{range (slice .LatestArticles 8)}}
-                <li><span>[{{index $.SortMap .SortID}}]</span><a href="{{bookUrl .ArticleID}}">{{.ArticleName}}</a></li>
-                {{end}}
+                {{range .Langtails}}
+                <li><a href="{{langtailUrl .LangID}}">{{.LangName}}</a></li>
                 {{end}}
             </ol>
-
         </div>
     </div>
     {{end}}

@@ -1,3 +1,6 @@
+// db_test_dao.go
+// 数据库测试 DAO
+// 提供简单的数据库连接测试功能
 package dao
 
 import (

@@ -1,3 +1,6 @@
+// router.go
+// 路由管理
+// 负责注册所有 HTTP 路由规则，包括静态资源、页面和 API
 package router
 
 import (
@@ -136,6 +139,7 @@ func SetupRouter(cfg *config.RouterConfig) *httprouter.Router {
 	router.POST(adminPath+"/modules/routes", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleRoutesUpdate)))
 	router.POST(adminPath+"/modules/sorts", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleSortsUpdate)))
 	router.POST(adminPath+"/modules/seo", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleSeoUpdate)))
+	router.POST(adminPath+"/modules/recommend", adaptHandlerFunc(admin.AuthMiddleware(admin.ModuleRecommendUpdate)))
 
 	// 插件管理路由
 	router.GET(adminPath+"/plugins", adaptHandlerFunc(admin.AuthMiddleware(admin.Plugins)))

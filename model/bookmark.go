@@ -1,3 +1,6 @@
+// bookmark.go
+// 书签模型
+// 定义用户阅读书签的数据结构
 package model
 
 // Bookmark 书签

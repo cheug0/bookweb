@@ -1,3 +1,6 @@
+// user.go
+// 用户中心控制器
+// 处理用户个人中心页面的展示及相关操作
 package controller
 
 import (

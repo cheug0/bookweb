@@ -1,3 +1,6 @@
+// main.go
+// 程序入口文件
+// 负责系统初始化（配置、数据库、日志、插件）及启动 HTTP 服务
 package main
 
 import (

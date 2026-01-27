@@ -1,3 +1,6 @@
+// main.go (genpwd)
+// 密码生成工具
+// 用于生成 bcrypt 加密的密码哈希，可用于重置管理员或用户密码
 package main
 
 import (

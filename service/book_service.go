@@ -1,3 +1,6 @@
+// book_service.go
+// 小说服务
+// 封装小说相关的高级业务逻辑，如获取小说详情页所需的聚合数据
 package service
 
 import (

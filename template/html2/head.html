@@ -2,9 +2,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>{{.Title}}</title>
-    <meta name="keywords" content="{{.Keywords}}">
-    <meta name="description" content="{{.Description}}">
+    <title>{{.CurrentTitle}}</title>
+    <meta name="keywords" content="{{.CurrentKeywords}}">
+    <meta name="description" content="{{.CurrentDesc}}">
 
     <!-- header -->
     <meta name="robots" content="all">
@@ -56,8 +56,8 @@
     </div>
     <div id="header">
         <div class="wrap980">
-            <div class="logo"><a href="/"><img src="/tpl_static/img/logo.png" alt="{{.SiteName}}" style="display:none;">
-                    <h1>{{.SiteName}}</h1><span>{{.Domain}}</span>
+            <div class="logo"><a href="/">
+                    <h1>{{.SiteName}}</h1><span>{{.SiteDomain}}</span>
                 </a></div>
             <div class="search">
                 <form id="search" name="t_frmsearch" method="get" action="/search">

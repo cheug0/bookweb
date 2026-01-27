@@ -1,3 +1,6 @@
+// sort.go
+// 分类模型
+// 定义小说分类信息的结构
 package model
 
 // Sort 对应数据库中的 sort 表

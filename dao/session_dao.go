@@ -1,3 +1,6 @@
+// session_dao.go
+// 会话 DAO
+// 简单的内存会话管理实现
 package dao
 
 import (

@@ -1,3 +1,6 @@
+// user_service.go
+// 用户服务
+// 处理用户相关的业务逻辑
 package service
 
 import (

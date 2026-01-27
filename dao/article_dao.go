@@ -1,3 +1,6 @@
+// article_dao.go
+// 文章 DAO
+// 处理小说信息的增删改查及点击量统计
 package dao
 
 import (
@@ -109,6 +112,50 @@ func GetArticlesBySortIDCached(sortID int, offset, limit int) ([]*model.Article,
 	// 写入缓存
 	if data, err := json.Marshal(articles); err == nil {
 		utils.CacheSet(cacheKey, string(data), 5*time.Minute)
+	}
+	return articles, nil
+}
+
+// GetArticlesByIDs 批量获取小说信息
+func GetArticlesByIDs(ids []int) ([]*model.Article, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	// 构建 IN 查询
+	sqlStr := "select articleid, articlename, author, intro, size, lastupdate, sortid, fullflag, imgflag, lastchapterid, lastchapter from jieqi_article_article where articleid in ("
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		if i > 0 {
+			sqlStr += ","
+		}
+		sqlStr += "?"
+		args[i] = id
+	}
+	sqlStr += ")"
+
+	rows, err := utils.Db.Query(sqlStr, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// 使用 Map 暂存结果以便按 ID 顺序返回
+	artMap := make(map[int]*model.Article)
+	for rows.Next() {
+		art := &model.Article{}
+		err := rows.Scan(&art.ArticleID, &art.ArticleName, &art.Author, &art.Intro, &art.Size, &art.LastUpdate, &art.SortID, &art.FullFlag, &art.ImgFlag, &art.LastChapterID, &art.LastChapter)
+		if err != nil {
+			continue
+		}
+		artMap[art.ArticleID] = art
+	}
+
+	var articles []*model.Article
+	for _, id := range ids {
+		if art, ok := artMap[id]; ok {
+			articles = append(articles, art)
+		}
 	}
 	return articles, nil
 }

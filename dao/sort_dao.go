@@ -1,3 +1,6 @@
+// sort_dao.go
+// 分类 DAO
+// 处理小说分类信息的获取
 package dao
 
 import (

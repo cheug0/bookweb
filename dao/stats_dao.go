@@ -1,3 +1,6 @@
+// stats_dao.go
+// 统计 DAO
+// 处理站点统计数据的聚合查询（如小说总数、总字数等）
 package dao
 
 import "bookweb/utils"

@@ -1,3 +1,6 @@
+// base.go
+// 基础控制器
+// 提供全站通用的数据获取方法 (GetCommonData) 和基础功能
 package controller
 
 import (

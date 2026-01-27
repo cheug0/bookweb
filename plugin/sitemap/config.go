@@ -1,3 +1,6 @@
+// config.go (sitemap)
+// Sitemap 配置
+// 定义 Sitemap 的输出目录及生成频率等配置
 package sitemap
 
 // Config sitemap 插件配置

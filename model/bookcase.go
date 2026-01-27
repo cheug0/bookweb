@@ -1,3 +1,6 @@
+// bookcase.go
+// 书架模型
+// 定义用户书架记录的数据结构
 package model
 
 // Bookcase 书架

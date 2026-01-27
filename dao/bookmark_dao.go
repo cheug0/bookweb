@@ -1,3 +1,6 @@
+// bookmark_dao.go
+// 书签 DAO
+// 处理用户阅读书签的增删查操作
 package dao
 
 import (

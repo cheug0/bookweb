@@ -1,3 +1,6 @@
+// bookmark_service.go
+// 书签服务
+// 处理书签相关的业务逻辑
 package service
 
 import (

@@ -1,3 +1,6 @@
+// user_admin_dao.go
+// 后台用户管理 DAO
+// 处理后台对用户的管理操作（如列表查询、禁用用户）
 package dao
 
 import (

@@ -1,3 +1,6 @@
+// plugin.go (ads)
+// 广告插件主文件
+// 实现广告插件的初始化和路由注册
 package ads
 
 import (

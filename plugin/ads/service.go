@@ -1,3 +1,6 @@
+// service.go (ads)
+// 广告服务逻辑
+// 提供获取广告内容的具体实现
 package ads
 
 import (

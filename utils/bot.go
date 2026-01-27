@@ -1,3 +1,6 @@
+// bot.go
+// 爬虫检测工具
+// 识别常见搜索引擎蜘蛛和爬虫
 package utils
 
 import (

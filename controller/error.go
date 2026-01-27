@@ -1,3 +1,6 @@
+// error.go
+// 错误处理控制器
+// 提供统一的错误页面渲染（如 404, 500）
 package controller
 
 import (

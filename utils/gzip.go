@@ -1,3 +1,6 @@
+// gzip.go
+// GZIP 中间件
+// 提供 HTTP 响应内容的 GZIP 压缩功能
 package utils
 
 import (

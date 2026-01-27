@@ -1,3 +1,6 @@
+// redis.go
+// Redis 工具
+// Redis 连接池管理及常用缓存操作封装
 package utils
 
 import (

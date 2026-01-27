@@ -1,3 +1,6 @@
+// controller.go (langtail)
+// 长尾词控制器
+// 处理长尾词落地页的展示请求
 package langtail
 
 import (
@@ -81,15 +84,25 @@ func LangtailInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 6. 获取长尾词列表和推荐文章
+	if pluginConfig == nil {
+		utils.LogWarn("Langtail", "pluginConfig is nil in LangtailInfo")
+	} else {
+		utils.LogInfo("Langtail", "LangtailInfo: show_count=%d", pluginConfig.ShowCount)
+	}
 	langtails, _ := dao.GetLangtailsBySourceID(langtailItem.SourceID)
+	if pluginConfig != nil && pluginConfig.ShowCount > 0 && len(langtails) > pluginConfig.ShowCount {
+		langtails = langtails[:pluginConfig.ShowCount]
+	}
 	latestArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "postdate", 10)
 	hotArticles, _ := dao.GetArticlesBySortAndOrder(article.SortID, "allvisit", 10)
 
 	// 7. 获取导航栏分类链接
 	sorts, _ := dao.GetAllSorts()
 	var sortLinks []map[string]string
+	sortMap := make(map[int]string)
 	sortRoute := config.GetRouterConfig().GetRoute("sort")
 	for _, s := range sorts {
+		sortMap[s.SortID] = s.Caption
 		url := sortRoute
 		url = strings.ReplaceAll(url, ":sid", fmt.Sprintf("%d", s.SortID))
 		url = strings.ReplaceAll(url, ":page", "1")
@@ -111,6 +124,12 @@ func LangtailInfo(w http.ResponseWriter, r *http.Request) {
 		return template.HTML(fmt.Sprintf("<!-- Processed in %.6f second(s) -->", duration))
 	}
 
+	// 安全获取配置
+	showCount := 50
+	if pluginConfig != nil {
+		showCount = pluginConfig.ShowCount
+	}
+
 	data := map[string]interface{}{
 		// SEO 字段
 		"CurrentTitle":    langtailItem.LangName + " - " + siteName,
@@ -120,6 +139,7 @@ func LangtailInfo(w http.ResponseWriter, r *http.Request) {
 		"SiteName":          siteName,
 		"SiteDomain":        siteDomain,
 		"SortLinks":         sortLinks,
+		"SortMap":           sortMap,
 		"TopUrl":            topRoute,
 		"IsLogin":           false,
 		"Analytics":         template.HTML(config.GlobalConfig.Analytics),
@@ -136,6 +156,7 @@ func LangtailInfo(w http.ResponseWriter, r *http.Request) {
 		"ChapterCount":   len(chapters),
 		"LatestArticles": latestArticles,
 		"HotArticles":    hotArticles,
+		"ShowCount":      showCount,
 	}
 
 	// 检查用户登录状态
@@ -146,7 +167,7 @@ func LangtailInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tplPath := getTplPath("book_info.html")
-	t := template.New("book_info.html").Funcs(utils.BookFuncMap)
+	t := template.New("book_info.html").Funcs(utils.CommonFuncMap)
 	t, err = t.ParseFiles(tplPath, getTplPath("head.html"), getTplPath("foot.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

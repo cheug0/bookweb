@@ -1,3 +1,6 @@
+// seo_service.go
+// SEO 服务
+// 处理 SEO 规则的加载和应用
 package service
 
 import (

@@ -1,3 +1,6 @@
+// db.go
+// 数据库工具
+// 处理 MySQL 数据库连接池的初始化与配置
 package utils
 
 import (

@@ -1,3 +1,6 @@
+// route_util.go
+// 路由工具
+// 路由参数解析及路径生成辅助函数
 package utils
 
 import (

@@ -1,3 +1,6 @@
+// logout.go
+// 登出控制器
+// 处理用户退出登录请求，清除会话
 package controller
 
 import (

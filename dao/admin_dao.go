@@ -1,3 +1,6 @@
+// admin_dao.go
+// 管理员 DAO
+// 处理后台管理员数据的相关操作
 package dao
 
 import (

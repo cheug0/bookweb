@@ -1,9 +1,13 @@
+// book.go
+// 小说核心控制器
+// 包含小说信息页、章节阅读页、章节目录页的逻辑处理
 package controller
 
 import (
 	"bookweb/config"
 	"bookweb/dao"
 	"bookweb/model"
+	"bookweb/plugin"
 	"bookweb/service"
 	"bookweb/utils"
 	"bytes"
@@ -11,6 +15,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -74,13 +79,35 @@ func BookInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 准备模版数据
-	tags := map[string]string{
+
+	// 应用 Langtail 显示数量限制
+	showCount := 50
+	langtailConfig := plugin.GetManager().GetConfig("langtail")
+	if langtailConfig != nil {
+		// 先尝试 float64 (JSON 默认)
+		if sc, ok := langtailConfig["show_count"].(float64); ok {
+			showCount = int(sc)
+		} else if sc, ok := langtailConfig["show_count"].(int); ok {
+			showCount = sc
+		} else if scStr, ok := langtailConfig["show_count"].(string); ok {
+			// 尝试解析字符串（兼容性）
+			if val, err := strconv.Atoi(scStr); err == nil {
+				showCount = val
+			}
+		}
+	}
+
+	if len(bookData.Langtails) > showCount {
+		bookData.Langtails = bookData.Langtails[:showCount]
+	}
+
+	dateTags := map[string]string{
 		"articlename": bookData.Article.ArticleName,
 		"author":      bookData.Article.Author,
 		"sortname":    bookData.SortName,
 	}
 	data := GetCommonData(r).
-		ApplySeo("book_info", tags).
+		ApplySeo("book_info", dateTags).
 		Add("Article", bookData.Article).
 		Add("SortName", bookData.SortName).
 		Add("Chapters", bookData.Chapters).

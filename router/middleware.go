@@ -1,3 +1,6 @@
+// middleware.go
+// 路由中间件
+// 提供请求拦截、日志记录、Recover 等通用中间件功能
 package router
 
 import (

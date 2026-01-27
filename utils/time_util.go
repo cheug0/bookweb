@@ -1,3 +1,6 @@
+// time_util.go
+// 时间工具
+// 时间格式化及相关计算函数
 package utils
 
 import (

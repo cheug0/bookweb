@@ -1,3 +1,6 @@
+// id_transform.go
+// ID 转换工具
+// 支持基于算术规则的 ID 转换，用于多站共享数据库场景
 package utils
 
 import (

@@ -1,3 +1,6 @@
+// plugin.go (sitemap)
+// 网站地图插件主文件
+// 实现 Sitemap 插件的初始化及路由注册
 package sitemap
 
 import (

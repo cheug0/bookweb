@@ -1,3 +1,6 @@
+// regist.go
+// 注册控制器
+// 处理用户注册请求
 package controller
 
 import (

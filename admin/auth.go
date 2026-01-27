@@ -1,3 +1,6 @@
+// auth.go
+// 后台认证控制器
+// 处理管理员登录验证及 Session 管理
 package admin
 
 import (

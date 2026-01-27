@@ -1,3 +1,6 @@
+// bookmark.go
+// 书签控制器
+// 处理用户添加、删除、查看书签的操作
 package controller
 
 import (

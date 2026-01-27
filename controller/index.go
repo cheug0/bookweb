@@ -1,3 +1,6 @@
+// index.go
+// 首页控制器
+// 处理网站首页展示，包括推荐、分类、最新更新等数据的聚合
 package controller
 
 import (
@@ -7,6 +10,8 @@ import (
 	"bookweb/utils"
 	"bytes"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,11 +36,13 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	data := GetCommonData(r).ApplySeo("index", nil)
 
-	// 1. 大神小说 (取 allvisit 前 6，带缓存)
-	topArticles, _ := dao.GetVisitArticlesCached(6)
+	// 1. 大神小说 (使用配置)
+	topCfg := config.GetGlobalConfig().Recommend.Top
+	topArticles := getRecommendedArticles(topCfg.Picks, topCfg.Sort, topCfg.Limit)
 
-	// 2. 热门小说 (取 allvisit 前 12，带缓存)
-	hotArticles, _ := dao.GetVisitArticlesCached(12)
+	// 2. 热门小说 (使用配置)
+	hotCfg := config.GetGlobalConfig().Recommend.Hot
+	hotArticles := getRecommendedArticles(hotCfg.Picks, hotCfg.Sort, hotCfg.Limit)
 
 	// 3. 分类展示 (前 6 个分类，每个取 13 本，带缓存)
 	allSorts, _ := dao.GetAllSortsCached()
@@ -87,4 +94,57 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(html))
+}
+
+// getRecommendedArticles 获取推荐小说（合并 Picks 和 Sort）
+func getRecommendedArticles(picksStr string, sortBy string, limit int) []*model.Article {
+	var result []*model.Article
+	existingIDs := make(map[int]bool)
+
+	// 1. 获取 Picks
+	if picksStr != "" {
+		var ids []int
+		parts := strings.Split(picksStr, ",")
+		for _, p := range parts {
+			// 支持去除首尾空格
+			p = strings.TrimSpace(p)
+			if id, err := strconv.Atoi(p); err == nil && id > 0 {
+				ids = append(ids, id)
+			}
+		}
+		if len(ids) > 0 {
+			pickedArts, _ := dao.GetArticlesByIDs(ids)
+			// 按输入的 ID 顺序添加到结果
+			for _, id := range ids {
+				for _, art := range pickedArts {
+					if art.ArticleID == id {
+						result = append(result, art)
+						existingIDs[art.ArticleID] = true
+						break
+					}
+				}
+			}
+		}
+	}
+
+	// 如果已达到限制，直接返回
+	if len(result) >= limit {
+		return result[:limit]
+	}
+
+	// 2. 获取补充的排序文章
+	// 稍微多取几个防止重复过滤后不足 (假设最多取 limit 个补充)
+	sortedArts, _ := dao.GetArticlesBySortAndOrderCached(0, sortBy, limit)
+
+	for _, art := range sortedArts {
+		if !existingIDs[art.ArticleID] {
+			result = append(result, art)
+			existingIDs[art.ArticleID] = true
+			if len(result) >= limit {
+				break
+			}
+		}
+	}
+
+	return result
 }

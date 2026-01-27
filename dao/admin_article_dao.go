@@ -1,3 +1,6 @@
+// admin_article_dao.go
+// 后台文章 DAO
+// 处理后台小说管理相关的数据库操作（如批量管理、审核）
 package dao
 
 import (

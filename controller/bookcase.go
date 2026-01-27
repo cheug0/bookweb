@@ -1,3 +1,6 @@
+// bookcase.go
+// 书架控制器
+// 处理用户书架的展示及管理操作
 package controller
 
 import (

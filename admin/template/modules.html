@@ -1,6 +1,7 @@
 {{define "content"}}
 <div class="tabs">
     <div class="tab-btn active" onclick="switchTab(this, 'routes')">URL 路由设置</div>
+    <div class="tab-btn" onclick="switchTab(this, 'recommend')">小说推荐设置</div>
     <div class="tab-btn" onclick="switchTab(this, 'sorts')">小说分类设置</div>
     <div class="tab-btn" onclick="switchTab(this, 'seo')">SEO 规则设置</div>
 </div>
@@ -15,7 +16,8 @@
                     <li>URL 模式支持 <code>:param</code> 形式的动态参数。</li>
                     <li><strong>book (小说详情)</strong>: 必须包含 <code>:id</code> (小说ID)。例如 <code>/book/:id</code></li>
                     <li><strong>read (章节阅读)</strong>: 必须包含 <code>:aid</code> (小说ID) 和 <code>:cid</code> (章节ID)。例如
-                        <code>/read/:aid/:cid</code></li>
+                        <code>/read/:aid/:cid</code>
+                    </li>
                 </ul>
             </div>
             <div class="table-container">
@@ -45,6 +47,112 @@
                 <label class="form-label"></label>
                 <div class="form-content">
                     <button type="submit" class="btn btn-primary">保存路由配置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="recommend" class="tab-content">
+    <div class="settings-container">
+        <form id="recommend-form" onsubmit="saveRecommend(event)">
+            <div class="alert alert-info"
+                style="margin-bottom: 25px; border-left: 4px solid #3498db; background: #f8f9fa;">
+                <strong><i class="fa fa-info-circle"></i> 推荐设置说明：</strong>
+                <ul style="margin: 5px 0 0 20px; font-size: 13px; color: #555;">
+                    <li><strong>排序方式</strong>: 决定推荐哪些书籍（例如：总访问量最高、最后更新等）。</li>
+                    <li><strong>数量</strong>: 决定首页或侧边栏显示的条数。</li>
+                </ul>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">大神推荐 (Top)</label>
+                <div class="form-content">
+                    <div style="width: 100%;">
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">排序方式</label>
+                                <select name="top_sort" class="form-control" style="width: 100%;">
+                                    <option value="allvisit" {{if eq .Recommend.Top.Sort "allvisit" }}selected{{end}}>
+                                        总访问量 (allvisit)</option>
+                                    <option value="monthvisit" {{if eq .Recommend.Top.Sort "monthvisit"
+                                        }}selected{{end}}>
+                                        月访问量 (monthvisit)</option>
+                                    <option value="weekvisit" {{if eq .Recommend.Top.Sort "weekvisit" }}selected{{end}}>
+                                        周访问量 (weekvisit)</option>
+                                    <option value="dayvisit" {{if eq .Recommend.Top.Sort "dayvisit" }}selected{{end}}>
+                                        日访问量 (dayvisit)</option>
+                                    <option value="postdate" {{if eq .Recommend.Top.Sort "postdate" }}selected{{end}}>
+                                        入库时间 (postdate)</option>
+                                    <option value="lastupdate" {{if eq .Recommend.Top.Sort "lastupdate"
+                                        }}selected{{end}}>
+                                        更新时间 (lastupdate)</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">显示数量</label>
+                                <input type="number" name="top_limit" class="form-control"
+                                    value="{{.Recommend.Top.Limit}}" style="width: 100%;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <label style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">指定小说ID
+                                (ID之间用逗号分隔，优先显示)</label>
+                            <input type="text" name="top_picks" class="form-control" value="{{.Recommend.Top.Picks}}"
+                                style="width: 100%;" placeholder="例如: 100,102,105">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">热门推荐 (Hot)</label>
+                <div class="form-content">
+                    <div style="width: 100%;">
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">排序方式</label>
+                                <select name="hot_sort" class="form-control" style="width: 100%;">
+                                    <option value="allvisit" {{if eq .Recommend.Hot.Sort "allvisit" }}selected{{end}}>
+                                        总访问量 (allvisit)</option>
+                                    <option value="monthvisit" {{if eq .Recommend.Hot.Sort "monthvisit"
+                                        }}selected{{end}}>
+                                        月访问量 (monthvisit)</option>
+                                    <option value="weekvisit" {{if eq .Recommend.Hot.Sort "weekvisit" }}selected{{end}}>
+                                        周访问量 (weekvisit)</option>
+                                    <option value="dayvisit" {{if eq .Recommend.Hot.Sort "dayvisit" }}selected{{end}}>
+                                        日访问量 (dayvisit)</option>
+                                    <option value="postdate" {{if eq .Recommend.Hot.Sort "postdate" }}selected{{end}}>
+                                        入库时间 (postdate)</option>
+                                    <option value="lastupdate" {{if eq .Recommend.Hot.Sort "lastupdate"
+                                        }}selected{{end}}>
+                                        更新时间 (lastupdate)</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">显示数量</label>
+                                <input type="number" name="hot_limit" class="form-control"
+                                    value="{{.Recommend.Hot.Limit}}" style="width: 100%;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <label style="font-size: 12px; display:block; margin-bottom:5px; color:#666;">指定小说ID
+                                (ID之间用逗号分隔，优先显示)</label>
+                            <input type="text" name="hot_picks" class="form-control" value="{{.Recommend.Hot.Picks}}"
+                                style="width: 100%;" placeholder="例如: 200,205,208">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 20px; border-bottom: none;">
+                <label class="form-label"></label>
+                <div class="form-content">
+                    <button type="submit" class="btn btn-primary">保存推荐设置</button>
                 </div>
             </div>
         </form>
@@ -228,6 +336,29 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(seoRules)
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('保存成功');
+                location.reload();
+            } else {
+                alert('保存失败: ' + data.message);
+            }
+        } catch (err) {
+            alert('网络错误');
+        }
+    }
+    // 保存推荐设置
+    async function saveRecommend(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const body = new URLSearchParams(formData);
+
+        try {
+            const res = await fetch('{{.AdminPath}}/modules/recommend', {
+                method: 'POST',
+                body: body
             });
             const data = await res.json();
             if (data.success) {

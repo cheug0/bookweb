@@ -1,3 +1,6 @@
+// context.go
+// 上下文模型
+// 定义 Context 中使用的 Key 类型及相关常量
 package model
 
 import "github.com/julienschmidt/httprouter"

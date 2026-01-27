@@ -1,3 +1,6 @@
+// user.go
+// 用户模型
+// 定义前台用户的数据结构
 package model
 
 // User 用户

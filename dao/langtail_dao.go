@@ -1,3 +1,6 @@
+// langtail_dao.go
+// 长尾词 DAO
+// 处理长尾关键词的存取及更新时间查询
 package dao
 
 import (
@@ -8,7 +11,7 @@ import (
 
 // GetLangtailsBySourceID 根据小说ID获取长尾词列表
 func GetLangtailsBySourceID(sourceID int) ([]*model.Langtail, error) {
-	sqlStr := "SELECT langid, sourceid, langname, sourcename, uptime FROM article_langtail WHERE sourceid = ? ORDER BY uptime DESC"
+	sqlStr := "SELECT langid, sourceid, langname, sourcename, uptime FROM article_langtail WHERE sourceid = ? ORDER BY uptime DESC, langid DESC"
 	rows, err := utils.Db.Query(sqlStr, sourceID)
 	if err != nil {
 		return nil, err

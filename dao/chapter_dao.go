@@ -1,3 +1,6 @@
+// chapter_dao.go
+// 章节 DAO
+// 处理小说章节内容的增删改查
 package dao
 
 import (

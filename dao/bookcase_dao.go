@@ -1,3 +1,6 @@
+// bookcase_dao.go
+// 书架 DAO
+// 处理用户书架数据的增删查操作
 package dao
 
 import (

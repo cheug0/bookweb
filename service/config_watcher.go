@@ -1,3 +1,6 @@
+// config_watcher.go
+// 配置监听服务
+// 监控配置文件变化并自动重新加载（热重载）
 package service
 
 import (
